@@ -2,10 +2,15 @@
 .idea/
 
 # build files
-
+target/
 /build/
 /dist/
+/out
+
+# IDE Files
 /nbproject/
+*.iml
+
 
 /tools/MapleArrowFetcher/build/
 /tools/MapleArrowFetcher/dist/
@@ -139,5 +144,4 @@
 /tools/SpiderDropFetcher/dist/
 /tools/SpiderDropFetcher/nbproject/
 
-/out
 *.onetoc2

@@ -2,7 +2,7 @@
 
 ## Head developer: Ronan C. P. Lana
 
-Besides myself for maintaining this repository, credits are to be given to Wizet/Nexon (owners of MapleStory & it's IP contents), the original MapleSolaxia staff and other colaborators, as just some changes/patches on the game were applied by myself, in which some of them diverged from the original v83 patch contents (alright, not just "some patches" by now since a whole lot of major server core changes have been applied on this development).
+Besides myself for maintaining this repository, credits are to be given to Wizet/Nexon (owners of MapleStory & it's IP contents), the original Solaxia staff and other collaborators, as just some changes/patches on the game were applied by myself, in which some of them diverged from the original v83 patch contents (alright, not just "some patches" by now since a whole lot of major server core changes have been applied on this development).
 
 Regarding distributability and usage of the code presented here: like it was before, this MapleStory server is open-source. By that, it is meant that anyone is **free to install, use, modify and redistribute the contents**, as long as there is **no kind of commercial trading involved** and the **credits to the original creators are maintained** within the codes.
 
@@ -23,9 +23,12 @@ Server files: https://github.com/ronancpl/HeavenMS
 
 Client files & general tools: https://drive.google.com/drive/folders/0BzDsHSr-0V4MYVJ0TWIxd05hYUk
 
-Java 8 SDK & NetBeans bundle: https://www.oracle.com/technetwork/pt/java/javase/downloads/jdk-netbeans-jsp-3413153-ptb.html
+JDK 8: https://www.oracle.com/ca-en/java/technologies/javase/javase-jdk8-downloads.html
+* To bypass login requirements change "otn" to "otn-pub" in url(right click > copy url) after you agree to Oracle License.
 
-**Important note about localhosts**: these executables are red-flagged by antivirus tools as __potentially malicious softwares__, this happens due to the reverse engineering methods that were applied onto these software artifacts. Those depicted here have been put to use for years already and posed no harm so far, so they are soundly assumed to be safe.
+Intellij: https://www.jetbrains.com/idea/download
+
+**Important note about localhosts**: These executables are red-flagged by antivirus tools as __potentially malicious softwares__, this happens due to the reverse engineering methods that were applied onto these software artifacts. Those depicted here have been put to use for years already and posed no harm so far, so they are soundly assumed to be safe.
 
   Latest localhost: https://hostr.co/amuX5SLeeVZx
 
@@ -133,8 +136,9 @@ Firstly, install all the general tools required to run the server:
 * mysql-query-browser.msi -> MySQL client component, visually shows the DB data and hubs queries.
 * hamachi.msi -> used for establishing a tunnelling route for the server/client communication.
 
-Now install the Java 8 SDK & NetBeans bundle (or any other IDE of your liking):
-* jdk-8u111-nb-8_2-windows-x64.exe -> JDK/JRE 8 & IDE for building the server.
+Now install the Java 8 JDK:
+* jdk-8uXXX-windows-x64.exe -> JDK/JRE 8 for building the server.
+* We assume you are running at least update 151 of java 8. Latest is best.
 
 Now that the tools have been installed, test if they are working.
 
@@ -179,19 +183,13 @@ Configure the IP you want to use for your MapleStory server in "configuration.in
 
 #### Configuring the project
 
-Now open NetBeans, and click "New project...". Opt for creating one "with existent code".
+Now open Intellij, and click File, New, Project from Existing Sources.
 
 In doubt where the project should be located, consider placing it on the same directory you've opted to place the server files.
 
-When prompted for location of source packages, navigate through the file system reaching the server files, and select the "src" folder. Next, click "Finish".
+When prompted for location of source packages, navigate through the file system reaching the server files and select the source folder(To be sure you can select pom.xml). Next, click "Ok".
 
-Inside the project you might encounter some code errors, you have yet to set the core JARs of the project.
-
-From the project hierarchy, right-click the project and select "Properties" -> "Libraries" -> "Add JAR/Folder".
-
-Locate the folder "cores" inside the root directory of the server files and manually configure those cores on NetBeans (mina-core, slf4j-api, ...).
-
-Finally, select "Clean and Build project" to build the JAR file for the MapleStory server.
+Finally, select "Maven" on the right and expand HeavenMS, Lifecycle. Run "package" to build the JAR file for the MapleStory server.
 
 #### Launching the server
 
