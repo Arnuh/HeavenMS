@@ -187,7 +187,7 @@ Now open Intellij, and click File, New, Project from Existing Sources.
 
 In doubt where the project should be located, consider placing it on the same directory you've opted to place the server files.
 
-When prompted for location of source packages, navigate through the file system reaching the server files and select the source folder(To be sure you can select pom.xml). Next, click "Ok".
+When prompted for location of source packages, navigate through the file system reaching the server files and select pom.xml. Next, click "Ok".
 
 Finally, select "Maven" on the right and expand HeavenMS, Lifecycle. Run "package" to build the JAR file for the MapleStory server.
 
