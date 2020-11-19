@@ -29,11 +29,11 @@ import client.inventory.Item;
  */
 public class MaplePlayerShopItem {
     private Item item;
-    private short bundles;
-    private int price;
+    private int bundles;
+    private long price;
     private boolean doesExist;
 
-    public MaplePlayerShopItem(Item item, short bundles, int price) {
+    public MaplePlayerShopItem(Item item, int bundles, long price) {
         this.item = item;
         this.bundles = bundles;
         this.price = price;
@@ -52,15 +52,15 @@ public class MaplePlayerShopItem {
         return item;
     }
 
-    public short getBundles() {
+    public int getBundles() {
         return bundles;
     }
 
-    public int getPrice() {
+    public long getPrice() {
         return price;
     }
 
-    public void setBundles(short bundles) {
+    public void setBundles(int bundles) {
         this.bundles = bundles;
     }
 }

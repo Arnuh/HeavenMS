@@ -41,7 +41,8 @@ public enum MapleWeaponType {
     STAFF(3.6),
     SWORD1H(4.0),
     SWORD2H(4.6),
-    WAND(3.6);
+    WAND(3.6),
+    CANNON(4.6);
     private double damageMultiplier;
 
     private MapleWeaponType(double maxDamageMultiplier) {

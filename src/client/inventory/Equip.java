@@ -1,23 +1,23 @@
 /*
- This file is part of the OdinMS Maple Story Server
- Copyright (C) 2008 Patrick Huy <patrick.huy@frz.cc>
- Matthias Butz <matze@odinms.de>
- Jan Christian Meyer <vimes@odinms.de>
+This file is part of the OdinMS Maple Story Server
+Copyright (C) 2008 Patrick Huy <patrick.huy@frz.cc>
+Matthias Butz <matze@odinms.de>
+Jan Christian Meyer <vimes@odinms.de>
 
- This program is free software: you can redistribute it and/or modify
- it under the terms of the GNU Affero General Public License as
- published by the Free Software Foundation version 3 as published by
- the Free Software Foundation. You may not use, modify or distribute
- this program under any other version of the GNU Affero General Public
- License.
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU Affero General Public License as
+published by the Free Software Foundation version 3 as published by
+the Free Software Foundation. You may not use, modify or distribute
+this program under any other version of the GNU Affero General Public
+License.
 
- This program is distributed in the hope that it will be useful,
- but WITHOUT ANY WARRANTY; without even the implied warranty of
- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- GNU Affero General Public License for more details.
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU Affero General Public License for more details.
 
- You should have received a copy of the GNU Affero General Public License
- along with this program.  If not, see <http://www.gnu.org/licenses/>.
+You should have received a copy of the GNU Affero General Public License
+along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 package client.inventory;
 
@@ -49,7 +49,7 @@ public class Equip extends Item {
             return value;
         }
     }
-    
+
     public static enum StatUpgrade {
 
         incDEX(0), incSTR(1), incINT(2), incLUK(3),
@@ -62,14 +62,14 @@ public class Equip extends Item {
             this.value = value;
         }
     }
-    
     private byte upgradeSlots;
-    private byte level, flag, itemLevel;
-    private short str, dex, _int, luk, hp, mp, watk, matk, wdef, mdef, acc, avoid, hands, speed, jump, vicious;
+    private byte flag, itemLevel;
+    private short hp, mp, acc, avoid, hands, speed, jump, vicious, level;
     private float itemExp;
-    private int ringid = -1;
+    private int ringid = -1, powerlevel = 0, str, dex, _int, luk, watk, matk, wdef, mdef;
     private boolean wear = false;
     private boolean isUpgradeable, isElemental = false;    // timeless or reverse, or any equip that could levelup on GMS for all effects
+    public boolean success;
 
     public Equip(int id, short position) {
         this(id, position, 0);
@@ -80,7 +80,7 @@ public class Equip extends Item {
         this.upgradeSlots = (byte) slots;
         this.itemExp = 0;
         this.itemLevel = 1;
-        
+
         this.isElemental = (MapleItemInformationProvider.getInstance().getEquipLevel(id, false) > 1);
     }
 
@@ -113,6 +113,7 @@ public class Equip extends Item {
         ret.setQuantity(getQuantity());
         ret.setExpiration(getExpiration());
         ret.setGiftFrom(getGiftFrom());
+        ret.powerlevel = powerlevel;
         return ret;
     }
 
@@ -125,24 +126,24 @@ public class Equip extends Item {
     public byte getItemType() {
         return 1;
     }
-    
+
     public byte getUpgradeSlots() {
         return upgradeSlots;
     }
 
-    public short getStr() {
+    public int getStr() {
         return str;
     }
 
-    public short getDex() {
+    public int getDex() {
         return dex;
     }
 
-    public short getInt() {
+    public int getInt() {
         return _int;
     }
 
-    public short getLuk() {
+    public int getLuk() {
         return luk;
     }
 
@@ -154,19 +155,19 @@ public class Equip extends Item {
         return mp;
     }
 
-    public short getWatk() {
+    public int getWatk() {
         return watk;
     }
 
-    public short getMatk() {
+    public int getMatk() {
         return matk;
     }
 
-    public short getWdef() {
+    public int getWdef() {
         return wdef;
     }
 
-    public short getMdef() {
+    public int getMdef() {
         return mdef;
     }
 
@@ -199,19 +200,19 @@ public class Equip extends Item {
         this.flag = flag;
     }
 
-    public void setStr(short str) {
+    public void setStr(int str) {
         this.str = str;
     }
 
-    public void setDex(short dex) {
+    public void setDex(int dex) {
         this.dex = dex;
     }
 
-    public void setInt(short _int) {
+    public void setInt(int _int) {
         this._int = _int;
     }
 
-    public void setLuk(short luk) {
+    public void setLuk(int luk) {
         this.luk = luk;
     }
 
@@ -223,19 +224,19 @@ public class Equip extends Item {
         this.mp = mp;
     }
 
-    public void setWatk(short watk) {
+    public void setWatk(int watk) {
         this.watk = watk;
     }
 
-    public void setMatk(short matk) {
+    public void setMatk(int matk) {
         this.matk = matk;
     }
 
-    public void setWdef(short wdef) {
+    public void setWdef(int wdef) {
         this.wdef = wdef;
     }
 
-    public void setMdef(short mdef) {
+    public void setMdef(int mdef) {
         this.mdef = mdef;
     }
 
@@ -252,7 +253,7 @@ public class Equip extends Item {
     }
 
     public void setSpeed(short speed) {
-        this.speed = speed;
+        this.speed = speed >= 100 ? 100 : speed;
     }
 
     public void setJump(short jump) {
@@ -267,50 +268,79 @@ public class Equip extends Item {
         this.upgradeSlots = upgradeSlots;
     }
 
-    public byte getLevel() {
+    public short getLevel() {
         return level;
     }
 
-    public void setLevel(byte level) {
+    public void setLevel(short level) {
         this.level = level;
+    }
+
+    public int getPowerLevel() {
+        return powerlevel;
+    }
+
+    public void setPowerLevel(int level) {
+        if (level > 0) {
+            this.powerlevel += level;
+            if (this.powerlevel > 9999999) {
+                this.setOwner("Pwr: 9999999+");
+            } else {
+                this.setOwner("Pwr: " + this.powerlevel);
+            }
+            
+        }
+    }
+
+    @Override
+    public boolean isCash(int id) {
+        if (id == 1112908 || id == 1112909 || id == 1112910) {
+            return false;
+        }
+        return MapleItemInformationProvider.getInstance().isCash(id);
     }
 
     private static int getStatModifier(boolean isAttribute) {
         // each set of stat points grants a chance for a bonus stat point upgrade at equip level up.
-        
-        if(ServerConstants.USE_EQUIPMNT_LVLUP_POWER) {
-            if(isAttribute) return 2;
-            else return 4;
-        }
-        else {
-            if(isAttribute) return 4;
-            else return 16;
+
+        if (ServerConstants.USE_EQUIPMNT_LVLUP_POWER) {
+            if (isAttribute) {
+                return 2;
+            } else {
+                return 4;
+            }
+        } else {
+            if (isAttribute) {
+                return 4;
+            } else {
+                return 16;
+            }
         }
     }
-    
+
     private static int randomizeStatUpgrade(int top) {
         int limit = Math.min(top, ServerConstants.MAX_EQUIPMNT_LVLUP_STAT_UP);
-        
+
         int poolCount = (limit * (limit + 1) / 2) + limit;
         int rnd = Randomizer.rand(0, poolCount);
-        
+
         int stat = 0;
-        if(rnd >= limit) {
+        if (rnd >= limit) {
             rnd -= limit;
-            stat = 1 + (int)Math.floor((-1 + Math.sqrt((8 * rnd) + 1)) / 2);    // optimized randomizeStatUpgrade author: David A.
+            stat = 1 + (int) Math.floor((-1 + Math.sqrt((8 * rnd) + 1)) / 2);    // optimized randomizeStatUpgrade author: David A.
         }
-        
+
         return stat;
     }
-    
+
     private static boolean isPhysicalWeapon(int itemid) {
         Equip eqp = (Equip) MapleItemInformationProvider.getInstance().getEquipById(itemid);
         return eqp.getWatk() >= eqp.getMatk();
     }
-    
+
     private boolean isNotWeaponAffinity(StatUpgrade name) {
         // WATK/MATK expected gains lessens outside of weapon affinity (physical/magic): Vcoc's idea
-        
+
         if (ItemConstants.isWeapon(this.getItemId())) {
             if (name.equals(StatUpgrade.incPAD)) {
                 if (!isPhysicalWeapon(this.getItemId())) {
@@ -322,63 +352,121 @@ public class Equip extends Item {
                 }
             }
         }
-        
+
         return false;
     }
-    
+
     private void getUnitStatUpgrade(List<Pair<StatUpgrade, Integer>> stats, StatUpgrade name, int curStat, boolean isAttribute) {
         isUpgradeable = true;
-        
-        int maxUpgrade = randomizeStatUpgrade((int)(1 + (curStat / (getStatModifier(isAttribute) * (isNotWeaponAffinity(name) ? 2.7 : 1)))));
-        if(maxUpgrade == 0) return;
-            
+
+        int maxUpgrade = randomizeStatUpgrade((int) (1 + (curStat / (getStatModifier(isAttribute) * (isNotWeaponAffinity(name) ? 2.7 : 1)))));
+        if (maxUpgrade == 0) {
+            return;
+        }
+
         stats.add(new Pair<>(name, maxUpgrade));
     }
-    
+
     private static void getUnitSlotUpgrade(List<Pair<StatUpgrade, Integer>> stats, StatUpgrade name) {
-        if(Math.random() < 0.1) {
+        if (Math.random() < 0.1) {
             stats.add(new Pair<>(name, 1));  // 10% success on getting a slot upgrade.
         }
     }
-    
+
     private void improveDefaultStats(List<Pair<StatUpgrade, Integer>> stats) {
-        if(dex > 0) getUnitStatUpgrade(stats, StatUpgrade.incDEX, dex, true);
-        if(str > 0) getUnitStatUpgrade(stats, StatUpgrade.incSTR, str, true);
-        if(_int > 0) getUnitStatUpgrade(stats, StatUpgrade.incINT,_int, true);
-        if(luk > 0) getUnitStatUpgrade(stats, StatUpgrade.incLUK, luk, true);
-        if(hp > 0) getUnitStatUpgrade(stats, StatUpgrade.incMHP, hp, false);
-        if(mp > 0) getUnitStatUpgrade(stats, StatUpgrade.incMMP, mp, false);
-        if(watk > 0) getUnitStatUpgrade(stats, StatUpgrade.incPAD, watk, false);
-        if(matk > 0) getUnitStatUpgrade(stats, StatUpgrade.incMAD, matk, false);
-        if(wdef > 0) getUnitStatUpgrade(stats, StatUpgrade.incPDD, wdef, false);
-        if(mdef > 0) getUnitStatUpgrade(stats, StatUpgrade.incMDD, mdef, false);
-        if(avoid > 0) getUnitStatUpgrade(stats, StatUpgrade.incEVA, avoid, false);
-        if(acc > 0) getUnitStatUpgrade(stats, StatUpgrade.incACC, acc, false);
-        if(speed > 0) getUnitStatUpgrade(stats, StatUpgrade.incSpeed, speed, false);
-        if(jump > 0) getUnitStatUpgrade(stats, StatUpgrade.incJump, jump, false);
+        if (dex > 0) {
+            getUnitStatUpgrade(stats, StatUpgrade.incDEX, dex, true);
+        }
+        if (str > 0) {
+            getUnitStatUpgrade(stats, StatUpgrade.incSTR, str, true);
+        }
+        if (_int > 0) {
+            getUnitStatUpgrade(stats, StatUpgrade.incINT, _int, true);
+        }
+        if (luk > 0) {
+            getUnitStatUpgrade(stats, StatUpgrade.incLUK, luk, true);
+        }
+        if (hp > 0) {
+            getUnitStatUpgrade(stats, StatUpgrade.incMHP, hp, false);
+        }
+        if (mp > 0) {
+            getUnitStatUpgrade(stats, StatUpgrade.incMMP, mp, false);
+        }
+        if (watk > 0) {
+            getUnitStatUpgrade(stats, StatUpgrade.incPAD, watk, false);
+        }
+        if (matk > 0) {
+            getUnitStatUpgrade(stats, StatUpgrade.incMAD, matk, false);
+        }
+        if (wdef > 0) {
+            getUnitStatUpgrade(stats, StatUpgrade.incPDD, wdef, false);
+        }
+        if (mdef > 0) {
+            getUnitStatUpgrade(stats, StatUpgrade.incMDD, mdef, false);
+        }
+        if (avoid > 0) {
+            getUnitStatUpgrade(stats, StatUpgrade.incEVA, avoid, false);
+        }
+        if (acc > 0) {
+            getUnitStatUpgrade(stats, StatUpgrade.incACC, acc, false);
+        }
+        if (speed > 0) {
+            getUnitStatUpgrade(stats, StatUpgrade.incSpeed, speed, false);
+        }
+        if (jump > 0) {
+            getUnitStatUpgrade(stats, StatUpgrade.incJump, jump, false);
+        }
     }
-    
-    public Map<StatUpgrade, Short> getStats() {
-        Map<StatUpgrade, Short> stats = new HashMap<>(5);
-        
-        if(dex > 0) stats.put(StatUpgrade.incDEX, dex);
-        if(str > 0) stats.put(StatUpgrade.incSTR, str);
-        if(_int > 0) stats.put(StatUpgrade.incINT,_int);
-        if(luk > 0) stats.put(StatUpgrade.incLUK, luk);
-        if(hp > 0) stats.put(StatUpgrade.incMHP, hp);
-        if(mp > 0) stats.put(StatUpgrade.incMMP, mp);
-        if(watk > 0) stats.put(StatUpgrade.incPAD, watk);
-        if(matk > 0) stats.put(StatUpgrade.incMAD, matk);
-        if(wdef > 0) stats.put(StatUpgrade.incPDD, wdef);
-        if(mdef > 0) stats.put(StatUpgrade.incMDD, mdef);
-        if(avoid > 0) stats.put(StatUpgrade.incEVA, avoid);
-        if(acc > 0) stats.put(StatUpgrade.incACC, acc);
-        if(speed > 0) stats.put(StatUpgrade.incSpeed, speed);
-        if(jump > 0) stats.put(StatUpgrade.incJump, jump);
-        
+
+    public Map<StatUpgrade, Integer> getStats() {
+        Map<StatUpgrade, Integer> stats = new HashMap<>(5);
+
+        if (dex > 0) {
+            stats.put(StatUpgrade.incDEX, dex);
+        }
+        if (str > 0) {
+            stats.put(StatUpgrade.incSTR, str);
+        }
+        if (_int > 0) {
+            stats.put(StatUpgrade.incINT, _int);
+        }
+        if (luk > 0) {
+            stats.put(StatUpgrade.incLUK, luk);
+        }
+        if (hp > 0) {
+            stats.put(StatUpgrade.incMHP,(int) hp);
+        }
+        if (mp > 0) {
+            stats.put(StatUpgrade.incMMP,(int)  mp);
+        }
+        if (watk > 0) {
+            stats.put(StatUpgrade.incPAD, watk);
+        }
+        if (matk > 0) {
+            stats.put(StatUpgrade.incMAD, matk);
+        }
+        if (wdef > 0) {
+            stats.put(StatUpgrade.incPDD, wdef);
+        }
+        if (mdef > 0) {
+            stats.put(StatUpgrade.incMDD, mdef);
+        }
+        if (avoid > 0) {
+            stats.put(StatUpgrade.incEVA,(int)  avoid);
+        }
+        if (acc > 0) {
+            stats.put(StatUpgrade.incACC,(int)  acc);
+        }
+        if (speed > 0) {
+            stats.put(StatUpgrade.incSpeed,(int)  speed);
+        }
+        if (jump > 0) {
+            stats.put(StatUpgrade.incJump,(int)  jump);
+        }
+
         return stats;
     }
-    
+
     public Pair<String, Pair<Boolean, Boolean>> gainStats(List<Pair<StatUpgrade, Integer>> stats) {
         boolean gotSlot = false, gotVicious = false;
         String lvupStr = "";
@@ -406,12 +494,12 @@ public class Equip extends Item {
                     lvupStr += "+" + statUp + "LUK ";
                     break;
                 case incMHP:
-                    statUp = Math.min(stat.getRight(), maxStat - hp);
+                    statUp = Math.min(stat.getRight(), 32000 - hp);
                     hp += statUp;
                     lvupStr += "+" + statUp + "HP ";
                     break;
                 case incMMP:
-                    statUp = Math.min(stat.getRight(), maxStat - mp);
+                    statUp = Math.min(stat.getRight(), 32000 - mp);
                     mp += statUp;
                     lvupStr += "+" + statUp + "MP ";
                     break;
@@ -436,26 +524,26 @@ public class Equip extends Item {
                     lvupStr += "+" + statUp + "MDEF ";
                     break;
                 case incEVA:
-                    statUp = Math.min(stat.getRight(), maxStat - avoid);
+                    statUp = Math.min(stat.getRight(), 32000 - avoid);
                     avoid += statUp;
                     lvupStr += "+" + statUp + "AVOID ";
                     break;
                 case incACC:
-                    statUp = Math.min(stat.getRight(), maxStat - acc);
+                    statUp = Math.min(stat.getRight(), 32000 - acc);
                     acc += statUp;
                     lvupStr += "+" + statUp + "ACC ";
                     break;
                 case incSpeed:
-                    statUp = Math.min(stat.getRight(), maxStat - speed);
+                    statUp = Math.min(stat.getRight(), 200 - speed);
                     speed += statUp;
                     lvupStr += "+" + statUp + "SPEED ";
                     break;
                 case incJump:
-                    statUp = Math.min(stat.getRight(), maxStat - jump);
+                    statUp = Math.min(stat.getRight(), 123 - jump);
                     jump += statUp;
                     lvupStr += "+" + statUp + "JUMP ";
                     break;
-                    
+
                 case incVicious:
                     vicious -= stat.getRight();
                     gotVicious = true;
@@ -466,56 +554,64 @@ public class Equip extends Item {
                     break;
             }
         }
-        
+
         return new Pair<>(lvupStr, new Pair<>(gotSlot, gotVicious));
     }
-    
+
     private void gainLevel(MapleClient c) {
         List<Pair<StatUpgrade, Integer>> stats = new LinkedList<>();
-        
-        if(isElemental) {
+
+        if (isElemental) {
             List<Pair<String, Integer>> elementalStats = MapleItemInformationProvider.getInstance().getItemLevelupStats(getItemId(), itemLevel);
-            
-            for(Pair<String, Integer> p: elementalStats) {
-                if(p.getRight() > 0) stats.add(new Pair<>(StatUpgrade.valueOf(p.getLeft()), p.getRight()));
+
+            for (Pair<String, Integer> p : elementalStats) {
+                if (p.getRight() > 0) {
+                    stats.add(new Pair<>(StatUpgrade.valueOf(p.getLeft()), p.getRight()));
+                }
             }
         }
-        
-        if(!stats.isEmpty()) {
-            if(ServerConstants.USE_EQUIPMNT_LVLUP_SLOTS) {
-                if(vicious > 0) getUnitSlotUpgrade(stats, StatUpgrade.incVicious);
+
+        if (!stats.isEmpty()) {
+            if (ServerConstants.USE_EQUIPMNT_LVLUP_SLOTS) {
+                if (vicious > 0) {
+                    getUnitSlotUpgrade(stats, StatUpgrade.incVicious);
+                }
                 getUnitSlotUpgrade(stats, StatUpgrade.incSlot);
             }
         } else {
             isUpgradeable = false;
-            
+
             improveDefaultStats(stats);
-            if(ServerConstants.USE_EQUIPMNT_LVLUP_SLOTS) {
-                if(vicious > 0) getUnitSlotUpgrade(stats, StatUpgrade.incVicious);
+            if (ServerConstants.USE_EQUIPMNT_LVLUP_SLOTS) {
+                if (vicious > 0) {
+                    getUnitSlotUpgrade(stats, StatUpgrade.incVicious);
+                }
                 getUnitSlotUpgrade(stats, StatUpgrade.incSlot);
             }
-            
-            if(isUpgradeable) {
-                while(stats.isEmpty()) {
+
+            if (isUpgradeable) {
+                while (stats.isEmpty()) {
                     improveDefaultStats(stats);
-                    if(ServerConstants.USE_EQUIPMNT_LVLUP_SLOTS) {
-                        if(vicious > 0) getUnitSlotUpgrade(stats, StatUpgrade.incVicious);
+                    if (ServerConstants.USE_EQUIPMNT_LVLUP_SLOTS) {
+                        if (vicious > 0) {
+                            getUnitSlotUpgrade(stats, StatUpgrade.incVicious);
+                        }
                         getUnitSlotUpgrade(stats, StatUpgrade.incSlot);
                     }
                 }
             }
         }
-        
+
         itemLevel++;
-        
+
         String lvupStr = "'" + MapleItemInformationProvider.getInstance().getName(this.getItemId()) + "' is now level " + itemLevel + "! ";
         String showStr = "#e'" + MapleItemInformationProvider.getInstance().getName(this.getItemId()) + "'#b is now #elevel #r" + itemLevel + "#k#b!";
-        
+
         Pair<String, Pair<Boolean, Boolean>> res = this.gainStats(stats);
         lvupStr += res.getLeft();
         boolean gotSlot = res.getRight().getLeft();
         boolean gotVicious = res.getRight().getRight();
-        
+
         if (gotVicious) {
             //c.getPlayer().dropMessage(6, "A new Vicious Hammer opportunity has been found on the '" + MapleItemInformationProvider.getInstance().getName(getItemId()) + "'!");
             lvupStr += "+VICIOUS ";
@@ -524,12 +620,12 @@ public class Equip extends Item {
             //c.getPlayer().dropMessage(6, "A new upgrade slot has been found on the '" + MapleItemInformationProvider.getInstance().getName(getItemId()) + "'!");
             lvupStr += "+UPGSLOT ";
         }
-        
+
         c.getPlayer().equipChanged();
-        
+
         showLevelupMessage(showStr, c); // thanks to Polaris dev team !
         c.getPlayer().dropMessage(6, lvupStr);
-        
+
         c.announce(MaplePacketCreator.showEquipmentLevelUp());
         c.getPlayer().getMap().broadcastMessage(c.getPlayer(), MaplePacketCreator.showForeignEffect(c.getPlayer().getId(), 15));
         c.getPlayer().forceUpdateItem(this);
@@ -538,89 +634,93 @@ public class Equip extends Item {
     public int getItemExp() {
         return (int) itemExp;
     }
-    
+
     private static double normalizedMasteryExp(int reqLevel) {
         // Conversion factor between mob exp and equip exp gain. Through many calculations, the expected for equipment levelup
         // from level 1 to 2 is killing about 100~200 mobs of the same level range, on a 1x EXP rate scenario.
-        
-        if(reqLevel < 5) {
+
+        if (reqLevel < 5) {
             return 42;
-        } else if(reqLevel >= 78) {
+        } else if (reqLevel >= 78) {
             return Math.max((10413.648 * Math.exp(reqLevel * 0.03275)), 15);
-        } else if(reqLevel >= 38) {
-            return Math.max(( 4985.818 * Math.exp(reqLevel * 0.02007)), 15);
-        } else if(reqLevel >= 18) {
-            return Math.max((  248.219 * Math.exp(reqLevel * 0.11093)), 15);
+        } else if (reqLevel >= 38) {
+            return Math.max((4985.818 * Math.exp(reqLevel * 0.02007)), 15);
+        } else if (reqLevel >= 18) {
+            return Math.max((248.219 * Math.exp(reqLevel * 0.11093)), 15);
         } else {
             return Math.max(((1334.564 * Math.log(reqLevel)) - 1731.976), 15);
         }
     }
-    
+
     public synchronized void gainItemExp(MapleClient c, int gain) {  // Ronan's Equip Exp gain method
         MapleItemInformationProvider ii = MapleItemInformationProvider.getInstance();
-        if(!ii.isUpgradeable(this.getItemId())) {
+        if (!ii.isUpgradeable(this.getItemId())) {
             return;
         }
-        
+
         int equipMaxLevel = Math.min(30, Math.max(ii.getEquipLevel(this.getItemId(), true), ServerConstants.USE_EQUIPMNT_LVLUP));
         if (itemLevel >= equipMaxLevel) {
             return;
         }
-        
+
         int reqLevel = ii.getEquipLevelReq(this.getItemId());
-        
-        float masteryModifier = (float)(ServerConstants.EQUIP_EXP_RATE * ExpTable.getExpNeededForLevel(1)) / (float)normalizedMasteryExp(reqLevel);
+
+        float masteryModifier = (float) (ServerConstants.EQUIP_EXP_RATE * ExpTable.getExpNeededForLevel(1)) / (float) normalizedMasteryExp(reqLevel);
         float elementModifier = (isElemental) ? 0.85f : 0.6f;
-        
+
         float baseExpGain = gain * elementModifier * masteryModifier;
-        
+
         itemExp += baseExpGain;
         int expNeeded = ExpTable.getEquipExpNeededForLevel(itemLevel);
-        
-        if(ServerConstants.USE_DEBUG_SHOW_INFO_EQPEXP) System.out.println("'" + ii.getName(this.getItemId()) + "' -> EXP Gain: " + gain + " Mastery: " + masteryModifier + " Base gain: " + baseExpGain + " exp: " + itemExp + " / " + expNeeded + ", Kills TNL: " + expNeeded / (baseExpGain / c.getPlayer().getExpRate()));
-        
+
+        if (ServerConstants.USE_DEBUG_SHOW_INFO_EQPEXP) {
+            System.out.println("'" + ii.getName(this.getItemId()) + "' -> EXP Gain: " + gain + " Mastery: " + masteryModifier + " Base gain: " + baseExpGain + " exp: " + itemExp + " / " + expNeeded + ", Kills TNL: " + expNeeded / (baseExpGain / c.getPlayer().getExpRate()));
+        }
+
         if (itemExp >= expNeeded) {
-            while(itemExp >= expNeeded) {
+            while (itemExp >= expNeeded) {
                 itemExp -= expNeeded;
                 gainLevel(c);
 
-                if(itemLevel >= equipMaxLevel) {
+                if (itemLevel >= equipMaxLevel) {
                     itemExp = 0.0f;
                     break;
                 }
-                
+
                 expNeeded = ExpTable.getEquipExpNeededForLevel(itemLevel);
             }
         }
-        
+
         c.getPlayer().forceUpdateItem(this);
         //if(ServerConstants.USE_DEBUG) c.getPlayer().dropMessage("'" + ii.getName(this.getItemId()) + "': " + itemExp + " / " + expNeeded);
     }
-    
+
     private boolean reachedMaxLevel() {
         if (isElemental) {
             if (itemLevel < MapleItemInformationProvider.getInstance().getEquipLevel(getItemId(), true)) {
                 return false;
             }
         }
-        
+
         return itemLevel >= ServerConstants.USE_EQUIPMNT_LVLUP;
     }
-    
+
     public String showEquipFeatures(MapleClient c) {
         MapleItemInformationProvider ii = MapleItemInformationProvider.getInstance();
-        if(!ii.isUpgradeable(this.getItemId())) return "";
-        
+        if (!ii.isUpgradeable(this.getItemId())) {
+            return "";
+        }
+
         String eqpName = ii.getName(getItemId());
-        String eqpInfo = reachedMaxLevel() ? " #e#rMAX LEVEL#k#n" : (" EXP: #e#b" + (int)itemExp + "#k#n / " + ExpTable.getEquipExpNeededForLevel(itemLevel));
-        
+        String eqpInfo = reachedMaxLevel() ? " #e#rMAX LEVEL#k#n" : (" EXP: #e#b" + (int) itemExp + "#k#n / " + ExpTable.getEquipExpNeededForLevel(itemLevel));
+
         return "'" + eqpName + "' -> LV: #e#b" + itemLevel + "#k#n    " + eqpInfo + "\r\n";
     }
 
     private static void showLevelupMessage(String msg, MapleClient c) {
         c.getPlayer().showHint(msg, 300);
     }
-    
+
     public void setItemExp(int exp) {
         this.itemExp = exp;
     }
@@ -630,7 +730,7 @@ public class Equip extends Item {
     }
 
     @Override
-    public void setQuantity(short quantity) {
+    public void setQuantity(int quantity) {
         if (quantity < 0 || quantity > 1) {
             throw new RuntimeException("Setting the quantity to " + quantity + " on an equip (itemid: " + getItemId() + ")");
         }
@@ -663,5 +763,13 @@ public class Equip extends Item {
 
     public byte getItemLevel() {
         return itemLevel;
+    }
+
+    public boolean success() {
+        return success;
+    }
+
+    public void setSuccess(boolean i) {
+        this.success = i;
     }
 }

@@ -71,7 +71,7 @@ public class MapleStorage {
     private static MapleStorage create(int id, int world) {
         try {
             Connection con = DatabaseConnection.getConnection();
-            try (PreparedStatement ps = con.prepareStatement("INSERT INTO storages (accountid, world, slots, meso) VALUES (?, ?, 4, 0)")) {
+            try (PreparedStatement ps = con.prepareStatement("INSERT INTO storages (accountid, world, slots, meso) VALUES (?, ?, 48, 0)")) {
                 ps.setInt(1, id);
                 ps.setInt(2, world);
                 ps.executeUpdate();
@@ -227,8 +227,8 @@ public class MapleStorage {
     }
 
     public void sendStorage(MapleClient c, int npcId) {
-        if (c.getPlayer().getLevel() < 15){
-            c.getPlayer().dropMessage(1, "You may only use the storage once you have reached level 15.");
+        if (c.getPlayer().getLevel() < 10){
+            c.getPlayer().dropMessage(1, "You may only use the storage once you have reached level 10.");
             c.announce(MaplePacketCreator.enableActions());
             return;
         }

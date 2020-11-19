@@ -194,7 +194,7 @@ public final class MTSHandler extends AbstractMaplePacketHandler {
                             ps.setInt(19, equip.getAcc());
                             ps.setInt(20, equip.getAvoid());
                             ps.setInt(21, equip.getHands());
-                            ps.setInt(22, equip.getSpeed());
+                            ps.setInt(22, equip.getSpeed() > 200 ? 200 : equip.getSpeed());
                             ps.setInt(23, equip.getJump());
                             ps.setInt(24, 0);
                             ps.setString(25, equip.getOwner());

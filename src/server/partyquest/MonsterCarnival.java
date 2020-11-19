@@ -395,12 +395,12 @@ public class MonsterCarnival {
             mc = cs.getPlayerStorage().getCharacterById(mpc.getId());
             if (mc != null) {
                 if (redWin) {
-                    mc.getClient().announce(MaplePacketCreator.showEffect("quest/carnival/win"));
-                    mc.getClient().announce(MaplePacketCreator.playSound("MobCarnival/Win"));
+                    mc.announce(MaplePacketCreator.showEffect("quest/carnival/win"));
+                    mc.announce(MaplePacketCreator.playSound("MobCarnival/Win"));
                     mc.dispelDebuffs();
                 } else {
-                    mc.getClient().announce(MaplePacketCreator.showEffect("quest/carnival/lose"));
-                    mc.getClient().announce(MaplePacketCreator.playSound("MobCarnival/Lose"));
+                    mc.announce(MaplePacketCreator.showEffect("quest/carnival/lose"));
+                    mc.announce(MaplePacketCreator.playSound("MobCarnival/Lose"));
                     mc.dispelDebuffs();
                 }
             }
@@ -410,12 +410,12 @@ public class MonsterCarnival {
             mc = cs.getPlayerStorage().getCharacterById(mpc.getId());
             if (mc != null) {
                 if (!redWin) {
-                    mc.getClient().announce(MaplePacketCreator.showEffect("quest/carnival/win"));
-                    mc.getClient().announce(MaplePacketCreator.playSound("MobCarnival/Win"));
+                    mc.announce(MaplePacketCreator.showEffect("quest/carnival/win"));
+                    mc.announce(MaplePacketCreator.playSound("MobCarnival/Win"));
                     mc.dispelDebuffs();
                 } else {
-                    mc.getClient().announce(MaplePacketCreator.showEffect("quest/carnival/lose"));
-                    mc.getClient().announce(MaplePacketCreator.playSound("MobCarnival/Lose"));
+                    mc.announce(MaplePacketCreator.showEffect("quest/carnival/lose"));
+                    mc.announce(MaplePacketCreator.playSound("MobCarnival/Lose"));
                     mc.dispelDebuffs();
                 }
             }

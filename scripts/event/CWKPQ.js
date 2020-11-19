@@ -203,7 +203,7 @@ function setup(channel) {
     var pos_y = Array(-204,-384,-504,-384,-204);
     var map = eim.getInstanceMap(610030540);
     for (var z = 0; z < pos_x.length; z++) {
-        var mob = em.getMonster(9400594);
+        var mob = em.getMonster(9400594, eim.getChannel());
         eim.registerMonster(mob);
         map.spawnMonsterOnGroundBelow(mob, new java.awt.Point(pos_x[z], pos_y[z]));
     }
@@ -229,7 +229,7 @@ function spawnGuardians(eim) {
     }
     map.broadcastStringMessage(5, "The Master Guardians have detected you.");
     for (var i = 0; i < 20; i++) { //spawn 20 guardians
-	var mob = eim.getMonster(9400594);
+	var mob = eim.getMonster(9400594, eim.getChannel());
 	eim.registerMonster(mob);
 	map.spawnMonsterOnGroundBelow(mob, new java.awt.Point(1000, 336));
     }

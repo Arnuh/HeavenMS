@@ -140,7 +140,7 @@ public class MapleMiniGame extends AbstractMapleMapObject {
             challenger.setMiniGame(null);
             visitor = null;
             
-            this.getOwner().getClient().announce(MaplePacketCreator.getMiniGameRemoveVisitor());
+            this.getOwner().announce(MaplePacketCreator.getMiniGameRemoveVisitor());
             if (GameType == MiniGameType.OMOK) {
                 this.getOwner().getMap().broadcastMessage(MaplePacketCreator.addOmokBox(owner, 1, 0));
             } else if (GameType == MiniGameType.MATCH_CARD) {
@@ -162,7 +162,7 @@ public class MapleMiniGame extends AbstractMapleMapObject {
     
     public void broadcastToVisitor(final byte[] packet) {
         if (visitor != null) {
-            visitor.getClient().announce(packet);
+            visitor.announce(packet);
         }
     }
 

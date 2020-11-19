@@ -1,50 +1,66 @@
 /*
-    This file is part of the HeavenMS MapleStory Server, commands OdinMS-based
-    Copyleft (L) 2016 - 2018 RonanLana
+This file is part of the HeavenMS MapleStory Server, commands OdinMS-based
+Copyleft (L) 2016 - 2018 RonanLana
 
-    This program is free software: you can redistribute it and/or modify
-    it under the terms of the GNU Affero General Public License as
-    published by the Free Software Foundation version 3 as published by
-    the Free Software Foundation. You may not use, modify or distribute
-    this program under any other version of the GNU Affero General Public
-    License.
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU Affero General Public License as
+published by the Free Software Foundation version 3 as published by
+the Free Software Foundation. You may not use, modify or distribute
+this program under any other version of the GNU Affero General Public
+License.
 
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU Affero General Public License for more details.
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU Affero General Public License for more details.
 
-    You should have received a copy of the GNU Affero General Public License
-    along with this program.  If not, see <http://www.gnu.org/licenses/>.
-*/
+You should have received a copy of the GNU Affero General Public License
+along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
 
 /*
-   @Author: Arthur L - Refactored command content into modules
-*/
+@Author: Arthur L - Refactored command content into modules
+ */
 package client.command.commands.gm0;
 
 import client.MapleCharacter;
-import client.command.Command;
 import client.MapleClient;
-import constants.ServerConstants;
+import client.command.Command;
+import net.server.Server;
 
 public class RatesCommand extends Command {
+
     {
-        setDescription("");
+        setDescription("@rates - displays World and your exp/drop rates.");
     }
 
     @Override
     public void execute(MapleClient c, String[] params) {
         MapleCharacter player = c.getPlayer();
-        
-        // travel rates not applicable since it's intrinsically a server/environment rate rather than a character rate
-        String showMsg_ = "#eCHARACTER RATES#n" + "\r\n\r\n";
-        showMsg_ += "EXP Rate: #e#b" + player.getExpRate() + "x#k#n" + (player.hasNoviceExpRate() ? " - novice rate" : "") + "\r\n";
-        showMsg_ += "MESO Rate: #e#b" + player.getMesoRate() + "x#k#n" + "\r\n";
-        showMsg_ += "DROP Rate: #e#b" + player.getDropRate() + "x#k#n" + "\r\n";
-        showMsg_ += "BOSS DROP Rate: #e#b" + player.getBossDropRate() + "x#k#n" + "\r\n";
-        if(ServerConstants.USE_QUEST_RATE) showMsg_ += "QUEST Rate: #e#b" + c.getWorldServer().getQuestRate() + "x#k#n" + "\r\n";
-
-        player.showHint(showMsg_, 300);
+        if (Server.getInstance().getexprate()) {
+            player.dropMessage(6, "[(Fever) World Exp Rate] " +(int) (player.getExpRate() * 100) + "%");
+        } else {
+            player.dropMessage(6, "[World Exp Rate] " + (int) (player.getExpRate() * 100) + "%");
+        }
+        if (Server.getInstance().getdroprate()) {
+            player.dropMessage(6, "[(Fever) World Drop Rate] " + (int) (player.getDropRate() * 100) + "%");
+        } else {
+            player.dropMessage(6, "[World Drop Rate] " + (int) (player.getDropRate() * 100) + "%");
+        }
+        if (Server.getInstance().getscrollrate()) {
+            player.dropMessage(6, "[(Fever) World Scroll Chance Rate] 2x");
+        } else {
+            player.dropMessage(6, "[World Scroll Chance Rate] 1x");
+        }
+        if (Server.getInstance().getquestrate()) {
+            player.dropMessage(6, "[(Fever) World Quest Exp Rate] 2x");
+        } else {
+            player.dropMessage(6, "[World Quest Exp Rate] 1x");
+        }
+        if (Server.getInstance().getdojorate()) {
+            player.dropMessage(6, "[(Fever) World Dojo Rate] 2x");
+        } else {
+            player.dropMessage(6, "[World Dojo Rate] 1x");
+        }
     }
 }

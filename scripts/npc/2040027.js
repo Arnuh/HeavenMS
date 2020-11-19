@@ -25,6 +25,9 @@
 	Description: 		Brings you to 41st Floor
 */
 
+var status = 0;
+var em = null;
+
 function start() {
     if (cm.haveItem(4001020))
         cm.sendYesNo("You can use #bEos Rock Scroll#k to activate #bFourth Eos Rock#k. Will you head over to #bThird Eos Rock#k at the 41st floor?");
@@ -35,10 +38,18 @@ function start() {
 }
 
 function action(mode, type, selection) {
-    if (mode < 1) {
+	if (mode == 1) {
+        status++;
     } else {
-        cm.gainItem(4001020, -1);
-        cm.warp(221021700, 3);
+        if (status == 0) {
+            cm.dispose();
+            return;
+        }
+        status--;
     }
+	if (status == 1) {
+		cm.gainItem(4001020, -1);
+        cm.warp(221021700, 0);
+	}
     cm.dispose();
 }

@@ -83,9 +83,9 @@ public class MapScriptManager {
             fr = new FileReader(scriptFile);
             
             // java 8 support here thanks to Arufonsu
-            if (ServerConstants.JAVA_8){
-                    se.eval("load('nashorn:mozilla_compat.js');" + System.lineSeparator());
-            }
+            //if (ServerConstants.JAVA_8){
+            //        se.eval("load('nashorn:mozilla_compat.js');" + System.lineSeparator());
+            //}
             
             ((Compilable) se).compile(fr).eval();
             
@@ -93,14 +93,17 @@ public class MapScriptManager {
             scripts.put(scriptName, script);
             script.invokeFunction("start", new MapScriptMethods(c));
         } catch (final UndeclaredThrowableException | ScriptException ute) {
+            System.out.println("Error in Map Script " + scriptName);
             FilePrinter.printError(FilePrinter.MAP_SCRIPT + type + scriptName + ".txt", ute);
         } catch (final Exception e) {
+            System.out.println("Error in Map Script " + scriptName);
             FilePrinter.printError(FilePrinter.MAP_SCRIPT + type + scriptName + ".txt", e);
         } finally {
             if (fr != null) {
                 try {
                     fr.close();
                 } catch (IOException e) {
+                    System.out.println("Error in Map Script " + scriptName);
                     e.printStackTrace();
                 }
             }

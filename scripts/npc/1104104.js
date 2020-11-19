@@ -65,6 +65,6 @@ function spawnMob(x, y, id, map) {
 	if(map.getMonsterById(id) != null)
 		return;
 		
-	var mob = MapleLifeFactory.getMonster(id);
+	var mob = MapleLifeFactory.getMonster(id, cm.getChannel());
 	map.spawnMonsterOnGroundBelow(mob, new java.awt.Point(x, y));
 }

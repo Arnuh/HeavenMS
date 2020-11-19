@@ -33,7 +33,7 @@ function act(){
         var mobObj, mapObj = rm.getMap();
         
         for(var i = 0; i < 7; i++) {
-                mobObj = MapleLifeFactory.getMonster(startId + Math.floor(Math.random() * 3));
+                mobObj = MapleLifeFactory.getMonster(startId + Math.floor(Math.random() * 3), rm.getChannel());
                 mapObj.spawnMonsterOnGroundBelow(mobObj, rm.getReactor().getPosition());
         }
 }

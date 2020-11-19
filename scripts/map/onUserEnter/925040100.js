@@ -5,6 +5,6 @@ function start(ms){
         var map = player.getMap();
         
         if(ms.isQuestStarted(21747) && ms.getQuestProgress(21747, 9300351) == 0) {
-                map.spawnMonsterOnGroundBelow(MapleLifeFactory.getMonster(9300351), new java.awt.Point(897, 51));
+                map.spawnMonsterOnGroundBelow(MapleLifeFactory.getMonster(9300351, map.getChannelId()), new java.awt.Point(897, 51));
         }
 }

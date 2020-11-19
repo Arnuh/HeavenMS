@@ -154,7 +154,7 @@ public class MapleExpedition {
 			schedule.cancel(false);
 		}
 		if (log && !registering){
-			LogHelper.logExpedition(this);
+			//LogHelper.logExpedition(this);
 		}
 	}
         

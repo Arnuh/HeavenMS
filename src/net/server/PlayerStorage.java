@@ -63,10 +63,15 @@ public class PlayerStorage {
         }
     }
 
-    public MapleCharacter getCharacterByName(String name) {
+    public MapleCharacter getCharacterByName(String originalName) {
         rlock.lock();    
         try {
-            return nameStorage.get(name.toLowerCase());
+            String name = originalName.toLowerCase();
+            if (name.contains(" ")) {
+                int index = name.indexOf(" ");
+                name = name.substring(index + 1);
+            }
+            return nameStorage.get(name);
         } finally {
             rlock.unlock();
         }

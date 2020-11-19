@@ -9,9 +9,9 @@ function enter(pi) {
             var chests = parseInt(eim.getProperty("openedChests"));
             var boss;                                               
 
-            if(chests == 0) boss = MapleLifeFactory.getMonster(9300119);        //lord pirate
-            else if(chests == 1) boss = MapleLifeFactory.getMonster(9300105);   //angry lord pirate
-            else boss = MapleLifeFactory.getMonster(9300106);                   //enraged lord pirate
+            if(chests == 0) boss = MapleLifeFactory.getMonster(9300119, pi.getChannel());        //lord pirate
+            else if(chests == 1) boss = MapleLifeFactory.getMonster(9300105, pi.getChannel());   //angry lord pirate
+            else boss = MapleLifeFactory.getMonster(9300106, pi.getChannel());                   //enraged lord pirate
 
             boss.changeDifficulty(level, true);
 

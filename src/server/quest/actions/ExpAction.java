@@ -53,7 +53,7 @@ public class ExpAction extends MapleQuestAction {
         
         public static void runAction(MapleCharacter chr, int gain) {
                 if (!ServerConstants.USE_QUEST_RATE) {
-                        chr.gainExp(gain * chr.getExpRate(), true, true);
+                        chr.gainExp((int) (gain * chr.getExpRate()), true, true);
                 } else {
                         chr.gainExp(gain * chr.getQuestExpRate(), true, true);
                 }

@@ -8,9 +8,9 @@ var Plane_to_KC;
 var KC_docked;
 
 //Time Setting is in millisecond
-var closeTime = 4 * 60 * 1000; //The time to close the gate
-var beginTime = 5 * 60 * 1000; //The time to begin the ride
-var  rideTime = 1 * 60 * 1000; //The time that require move to destination
+var closeTime = 60000; //The time to close the gate
+var beginTime = 70000; //The time to begin the ride
+var  rideTime = 30000; //The time that require move to destination
 
 function init() {
     closeTime = em.getTransportationTime(closeTime);

@@ -154,7 +154,7 @@ public final class ItemConstants {
     }
     
     public static boolean isChaosScroll(int scrollId) {
-    	return scrollId >= 2049100 && scrollId <= 2049103;
+    	return scrollId >= 2049100 || scrollId <= 2049170;
     }
     
     public static boolean isRateCoupon(int itemId) {
@@ -217,7 +217,11 @@ public final class ItemConstants {
     }
 
     public static boolean isWeapon(int itemId) {
-        return itemId >= 1302000 && itemId < 1493000;
+        if (itemId >= 1300000 && itemId < 1700000) {
+            return true;
+        }
+        
+        return false;
     }
     
     public static boolean isEquipment(int itemId) {
@@ -229,7 +233,7 @@ public final class ItemConstants {
     }
     
     public static boolean isMedal(int itemId) {
-        return itemId >= 1140000 && itemId < 1143000;
+        return itemId >= 1140000 && itemId < 1144000;
     }
     
     public static boolean isWeddingRing(int itemId) {
@@ -241,11 +245,11 @@ public final class ItemConstants {
     }
     
     public static boolean isFace(int itemId) {
-        return itemId >= 20000 && itemId < 22000;
+        return itemId >= 20000 && itemId < 30000;
     }
     
     public static boolean isHair(int itemId) {
-        return itemId >= 30000 && itemId < 35000;
+        return itemId >= 30000 && itemId < 50000;
     }
     
     public static boolean isFaceExpression(int itemId) {

@@ -186,6 +186,7 @@ function end(eim) {
 }
 
 function clearPQ(eim) {
+	    eim.gainPartyItem(4000313, 100);
         eim.stopEventTimer();
         eim.setEventCleared();
 }

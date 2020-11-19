@@ -27,6 +27,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Random;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock.ReadLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock.WriteLock;
@@ -36,6 +37,7 @@ import provider.MapleData;
 import provider.MapleDataProvider;
 import provider.MapleDataProviderFactory;
 import provider.MapleDataTool;
+import tools.Randomizer;
 
 /**
  *
@@ -43,9 +45,9 @@ import provider.MapleDataTool;
  */
 public class MobSkillFactory {
 
-    private static Map<String, MobSkill> mobSkills = new HashMap<String, MobSkill>();
+    private static final Map<String, MobSkill> mobSkills = new HashMap<String, MobSkill>();
     private final static MapleDataProvider dataSource = MapleDataProviderFactory.getDataProvider(new File(System.getProperty("wzpath") + "/Skill.wz"));
-    private static MapleData skillRoot = dataSource.getData("MobSkill.img");
+    private static final MapleData skillRoot = dataSource.getData("MobSkill.img");
     private final static ReentrantReadWriteLock dataLock = new MonitoredReentrantReadWriteLock(MonitoredLockType.MOBSKILL_FACTORY);
     private final static ReadLock rL = dataLock.readLock();
     private final static WriteLock wL = dataLock.writeLock();
@@ -68,7 +70,7 @@ public class MobSkillFactory {
             if (ret == null) {
                 MapleData skillData = skillRoot.getChildByPath(skillId + "/level/" + level);
                 if (skillData != null) {
-                    int mpCon = MapleDataTool.getInt(skillData.getChildByPath("mpCon"), 0);
+                    //int mpCon = MapleDataTool.getInt(skillData.getChildByPath("mpCon"), 0);
                     List<Integer> toSummon = new ArrayList<Integer>();
                     for (int i = 0; i > -1; i++) {
                         if (skillData.getChildByPath(String.valueOf(i)) == null) {
@@ -81,7 +83,7 @@ public class MobSkillFactory {
                     int x = MapleDataTool.getInt("x", skillData, 1);
                     int y = MapleDataTool.getInt("y", skillData, 1);
                     long duration = MapleDataTool.getInt("time", skillData, 0) * 1000;
-                    long cooltime = MapleDataTool.getInt("interval", skillData, 0) * 1000;
+                    long cooltime = MapleDataTool.getInt("interval", skillData, 0) * 250;
                     int iprop = MapleDataTool.getInt("prop", skillData, 100);
                     float prop = iprop / 100;
                     int limit = MapleDataTool.getInt("limit", skillData, 0);
@@ -97,7 +99,7 @@ public class MobSkillFactory {
                     ret.setCoolTime(cooltime);
                     ret.setDuration(duration);
                     ret.setHp(hp);
-                    ret.setMpCon(mpCon);
+                    ret.setMpCon(0);
                     ret.setSpawnEffect(effect);
                     ret.setX(x);
                     ret.setY(y);

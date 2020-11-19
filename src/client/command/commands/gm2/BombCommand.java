@@ -41,13 +41,13 @@ public class BombCommand extends Command {
         if (params.length > 0) {
             MapleCharacter victim = c.getWorldServer().getPlayerStorage().getCharacterByName(params[0]);
             if (victim != null) {
-                victim.getMap().spawnMonsterOnGroundBelow(MapleLifeFactory.getMonster(9300166), victim.getPosition());
+                victim.getMap().spawnMonsterOnGroundBelow(MapleLifeFactory.getMonster(9300166, player.getClient().getChannel()), victim.getPosition());
                 Server.getInstance().broadcastGMMessage(c.getWorld(), MaplePacketCreator.serverNotice(5, player.getName() + " used !bomb on " + victim.getName()));
             } else {
                 player.message("Player '" + params[0] + "' could not be found on this world.");
             }
         } else {
-            player.getMap().spawnMonsterOnGroundBelow(MapleLifeFactory.getMonster(9300166), player.getPosition());
+            player.getMap().spawnMonsterOnGroundBelow(MapleLifeFactory.getMonster(9300166, player.getClient().getChannel()), player.getPosition());
         }
     }
 }

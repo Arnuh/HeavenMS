@@ -21,9 +21,11 @@
  */
 package scripting.event;
 
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -37,7 +39,7 @@ import scripting.AbstractScriptManager;
  *
  * @author Matze
  */
-public class EventScriptManager extends AbstractScriptManager {
+public final class EventScriptManager extends AbstractScriptManager {
 
     private class EventEntry {
 
@@ -58,6 +60,7 @@ public class EventScriptManager extends AbstractScriptManager {
                 events.put(script, new EventEntry(iv, new EventManager(cserv, iv, script)));
             }
         }
+        init();
     }
 
     public EventManager getEventManager(String event) {
@@ -101,6 +104,19 @@ public class EventScriptManager extends AbstractScriptManager {
 
     public void cancel() {
         for (EventEntry entry : events.values()) {
+            entry.em.cancel();
+        }
+    }
+    
+     public void dispose() {
+        if (events.isEmpty()) {
+            return;
+        }
+        
+        Set<EventEntry> eventEntries = new HashSet<>(events.values());
+        events.clear();
+
+        for (EventEntry entry : eventEntries) {
             entry.em.cancel();
         }
     }

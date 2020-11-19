@@ -97,9 +97,6 @@ public final class SummonDamageHandler extends AbstractDealDamageHandler {
             allDamage.add(new SummonAttackEntry(monsterOid, damage, magic));
         }
         player.getMap().broadcastMessage(player, MaplePacketCreator.summonAttack(player.getId(), summon.getObjectId(), direction, allDamage), summon.getPosition());
-        if (player.getMap().isOwnershipRestricted(player)) {
-            return;
-        }
         
         Map<Integer, Integer> maxDmgEntries = new HashMap<>();
         for (SummonAttackEntry attackEntry : allDamage) {
@@ -113,9 +110,9 @@ public final class SummonDamageHandler extends AbstractDealDamageHandler {
                 }
                 
                 if (damage > maxDmg) {
-                    AutobanFactory.DAMAGE_HACK.alert(c.getPlayer(), "Possible packet editing summon damage exploit.");
+                    //AutobanFactory.DAMAGE_HACK.alert(c.getPlayer(), "Possible packet editing summon damage exploit.");
 
-                    FilePrinter.printError(FilePrinter.EXPLOITS + c.getPlayer().getName() + ".txt", c.getPlayer().getName() + " used a summon of skillid " + summon.getSkill() + " to attack " + MapleMonsterInformationProvider.getInstance().getMobNameFromId(target.getId()) + " with damage " + damage + " (max: " + maxDmg + ")");
+                    //FilePrinter.printError(FilePrinter.EXPLOITS + c.getPlayer().getName() + ".txt", c.getPlayer().getName() + " used a summon of skillid " + summon.getSkill() + " to attack " + MapleMonsterInformationProvider.getInstance().getMobNameFromId(target.getId()) + " with damage " + damage + " (max: " + maxDmg + ")");
                     damage = maxDmg;
                 }
                 

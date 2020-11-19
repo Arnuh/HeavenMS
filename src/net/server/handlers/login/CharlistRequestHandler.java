@@ -48,7 +48,7 @@ public final class CharlistRequestHandler extends AbstractMaplePacketHandler {
         }
         
         c.setWorld(world);
-        c.setChannel(channel);
+        c.setChannel(1);
         c.sendCharList(world);
     }
 }

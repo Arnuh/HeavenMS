@@ -24,6 +24,7 @@ package net.server.world;
 import client.MapleCharacter;
 import client.MapleClient;
 import constants.ServerConstants;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedList;
@@ -50,10 +51,12 @@ public class MapleParty {
     private MapleParty enemy = null;
     private int leaderId;
     private List<MaplePartyCharacter> members = new LinkedList<>();
+    private List<MapleCharacter> raidmembers = new LinkedList<>();
     private List<MaplePartyCharacter> pqMembers = null;
 
     private Map<Integer, Integer> histMembers = new HashMap<>();
     private int nextEntry = 0;
+    public boolean door = false;
 
     private Map<Integer, MapleDoor> doors = new HashMap<>();
 
@@ -143,6 +146,20 @@ public class MapleParty {
         } finally {
             lock.unlock();
         }
+    }
+
+    public List<MapleCharacter> getOnlinePartyMembers() {
+        List<MapleCharacter> ret = new ArrayList<>();
+
+        lock.lock();
+        try {
+            for (MaplePartyCharacter chr : members) {
+                ret.add(chr.getPlayer());
+            }
+        } finally {
+            lock.unlock();
+        }
+        return ret;
     }
 
     // used whenever entering PQs: will draw every party member that can attempt a target PQ while ingnoring those unfit.
@@ -323,55 +340,62 @@ public class MapleParty {
         }
         return true;
     }
-    
+
     public static boolean createParty(MapleCharacter player, boolean silentCheck) {
+        player.cancelMagicDoor();
+        player.getMap().updateDoor(player);
         MapleParty party = player.getParty();
-        if (party == null) {
+        if (party == null || player.getRaid() == null) {
             if (player.getLevel() < 10 && !ServerConstants.USE_PARTY_FOR_STARTERS) {
                 player.announce(MaplePacketCreator.partyStatusMessage(10));
                 return false;
             } else if (player.getAriantColiseum() != null) {
                 player.dropMessage(5, "You cannot request a party creation while participating the Ariant Battle Arena.");
                 return false;
+            } else if (player.getEventInstance() != null) {
+                player.dropMessage(5, "You cannot request a party creation while participating in a raid or event.");
+                return false;
             }
-            
+
             MaplePartyCharacter partyplayer = new MaplePartyCharacter(player);
             party = player.getWorldServer().createParty(partyplayer);
             player.setParty(party);
             player.setMPC(partyplayer);
             player.getMap().addPartyMember(player);
             player.silentPartyUpdate();
-            
+
             player.updatePartySearchAvailability(false);
             player.partyOperationUpdate(party, null);
-            
+
             player.announce(MaplePacketCreator.partyCreated(party, partyplayer.getId()));
-            
+
             return true;
         } else {
             if (!silentCheck) {
                 player.announce(MaplePacketCreator.partyStatusMessage(16));
             }
-            
+
             return false;
         }
     }
-    
+
     public static boolean joinParty(MapleCharacter player, int partyid, boolean silentCheck) {
         MapleParty party = player.getParty();
         World world = player.getWorldServer();
-        
-        if (party == null) {
+
+        if (party == null || player.getRaid() == null) {
+            player.cancelMagicDoor();
+            player.getMap().updateDoor(player);
             party = world.getParty(partyid);
             if (party != null) {
-                if (party.getMembers().size() < 6) {
+                if (party.getMembers().size() < ServerConstants.PartySize) {
                     MaplePartyCharacter partyplayer = new MaplePartyCharacter(player);
                     player.getMap().addPartyMember(player);
-                    
+
                     world.updateParty(party.getId(), PartyOperation.JOIN, partyplayer);
                     player.receivePartyMemberHP();
                     player.updatePartyMemberHP();
-                    
+
                     player.resetPartySearchInvite(party.getLeaderId());
                     player.updatePartySearchAvailability(false);
                     player.partyOperationUpdate(party, null);
@@ -389,94 +413,120 @@ public class MapleParty {
                 player.announce(MaplePacketCreator.serverNotice(5, "You can't join the party as you are already in one."));
             }
         }
-        
+
         return false;
     }
-    
+
     public static void leaveParty(MapleParty party, MapleClient c) {
         World world = c.getWorldServer();
         MapleCharacter player = c.getPlayer();
         MaplePartyCharacter partyplayer = player.getMPC();
-        
+
         if (party != null && partyplayer != null) {
+            player.cancelMagicDoor();
+            player.getMap().updateDoor(player);
             if (partyplayer.getId() == party.getLeaderId()) {
                 c.getWorldServer().removeMapPartyMembers(party.getId());
-                
+
                 MonsterCarnival mcpq = player.getMonsterCarnival();
                 if (mcpq != null) {
                     mcpq.leftParty(player.getId());
                 }
-                
+
                 world.updateParty(party.getId(), PartyOperation.DISBAND, partyplayer);
-                
+
                 EventInstanceManager eim = player.getEventInstance();
-                if(eim != null) {
-                    eim.disbandParty();
+                if (eim != null) {
+                    eim.exitParty();
                 }
             } else {
                 MapleMap map = player.getMap();
                 if (map != null) {
                     map.removePartyMember(player);
                 }
-                
+
                 MonsterCarnival mcpq = player.getMonsterCarnival();
                 if (mcpq != null) {
                     mcpq.leftParty(player.getId());
                 }
 
                 world.updateParty(party.getId(), PartyOperation.LEAVE, partyplayer);
-                
+
                 EventInstanceManager eim = player.getEventInstance();
-                if(eim != null) {
-                    eim.leftParty(player);
+                if (eim != null) {
+                    eim.exitPlayer(player);
                 }
             }
-            
+
             player.setParty(null);
-            
+
             MapleMatchCheckerCoordinator mmce = c.getWorldServer().getMatchCheckerCoordinator();
             if (mmce.getMatchConfirmationLeaderid(player.getId()) == player.getId() && mmce.getMatchConfirmationType(player.getId()) == MatchCheckerType.GUILD_CREATION) {
                 mmce.dismissMatchConfirmation(player.getId());
             }
         }
     }
-    
+
     public static void expelFromParty(MapleParty party, MapleClient c, int expelCid) {
         World world = c.getWorldServer();
         MapleCharacter player = c.getPlayer();
         MaplePartyCharacter partyplayer = player.getMPC();
-        
+
         if (party != null && partyplayer != null) {
+            player.cancelMagicDoor();
+            player.getMap().updateDoor(player);
             if (partyplayer.equals(party.getLeader())) {
                 MaplePartyCharacter expelled = party.getMemberById(expelCid);
                 if (expelled != null) {
                     MapleCharacter emc = expelled.getPlayer();
-                    if(emc != null) {
-                        List<MapleCharacter> partyMembers = emc.getPartyMembers();
+                    if (emc != null) {
+                        List<MapleCharacter> partyMembers = emc.getPartyMembersOnline();
 
                         MapleMap map = emc.getMap();
-                        if(map != null) map.removePartyMember(emc);
-                        
+                        if (map != null) {
+                            map.removePartyMember(emc);
+                        }
+
                         MonsterCarnival mcpq = player.getMonsterCarnival();
                         if (mcpq != null) {
                             mcpq.leftParty(emc.getId());
                         }
-                        
+
                         EventInstanceManager eim = emc.getEventInstance();
-                        if(eim != null) {
+                        if (eim != null) {
                             eim.leftParty(emc);
                         }
 
                         emc.setParty(null);
                         world.updateParty(party.getId(), PartyOperation.EXPEL, expelled);
-                        
+
                         emc.updatePartySearchAvailability(true);
                         emc.partyOperationUpdate(party, partyMembers);
+                        if (emc.getEventInstance() != null) {
+                            emc.getEventInstance().exitPlayer(emc);
+                        }
                     } else {
                         world.updateParty(party.getId(), PartyOperation.EXPEL, expelled);
                     }
                 }
             }
+        }
+    }
+
+    public List<MaplePartyCharacter> getPartyMembersOnline() {
+        lock.lock();
+        try {
+            List<MaplePartyCharacter> ret = new LinkedList<>();
+
+            for (MaplePartyCharacter mpc : members) {
+                if (mpc.isOnline()) {
+                    ret.add(mpc);
+                }
+            }
+
+            return ret;
+        } finally {
+            lock.unlock();
         }
     }
 }

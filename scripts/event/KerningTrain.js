@@ -24,6 +24,7 @@ function setup(level, lobbyid) {
 function afterSetup(eim) {}
 
 function playerEntry(eim, player) {
+        player.getClient().announce(MaplePacketCreator.earnTitleMessage("The next stop is at Kerning " + player.getName()));
 	if (player.getMapId() == returnTo[0]) {
 		myRide = 0;
 	} else {

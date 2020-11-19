@@ -225,6 +225,7 @@ function end(eim) {
 }
 
 function giveRandomEventReward(eim, player) {
+	    eim.gainPartyItem(4000313, 25);
         eim.giveEventReward(player);
 }
 

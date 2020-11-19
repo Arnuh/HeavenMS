@@ -56,14 +56,9 @@ public final class UseSolomonHandler extends AbstractMaplePacketHandler {
                         return;
                     }
                     
-                    long gachaexp = ii.getExpById(itemId);
                     if (slotItem.getItemId() != itemId || slotItem.getQuantity() <= 0 || chr.getLevel() > ii.getMaxLevelById(itemId)) {
                         return;
                     }
-                    if (gachaexp + chr.getGachaExp() > Integer.MAX_VALUE) {
-                        return;
-                    }
-                    chr.addGachaExp((int) gachaexp);
                     MapleInventoryManipulator.removeFromSlot(c, MapleInventoryType.USE, slot, (short) 1, false);
                 } finally {
                     inv.unlockInventory();

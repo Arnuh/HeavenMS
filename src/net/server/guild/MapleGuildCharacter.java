@@ -18,12 +18,13 @@
 
     You should have received a copy of the GNU Affero General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
-*/
+ */
 package net.server.guild;
 
 import client.MapleCharacter;
 
 public class MapleGuildCharacter {
+
     private MapleCharacter character;
     private int level;
     private int id;
@@ -38,7 +39,7 @@ public class MapleGuildCharacter {
     public MapleGuildCharacter(MapleCharacter c) {
         this.character = c;
         this.name = c.getName();
-        this.level = c.getLevel();
+        this.level = c.getTotalLevel();
         this.id = c.getId();
         this.channel = c.getClient().getChannel();
         this.world = c.getWorld();
@@ -64,16 +65,20 @@ public class MapleGuildCharacter {
         this.guildid = _gid;
         this.allianceRank = _allianceRank;
     }
-    
+
     public void setCharacter(MapleCharacter ch) {
         this.character = ch;
     }
-    
+
     public MapleCharacter getCharacter() {
         return character;
     }
 
     public int getLevel() {
+        return level;
+    }
+
+    public int getTotalLevel() {
         return level;
     }
 
@@ -113,7 +118,7 @@ public class MapleGuildCharacter {
         guildid = gid;
         character.setGuildId(gid);
     }
-    
+
     public int getGuildRank() {
         return guildrank;
     }
@@ -121,16 +126,16 @@ public class MapleGuildCharacter {
     public void setOfflineGuildRank(int rank) {
         guildrank = rank;
     }
-    
+
     public void setGuildRank(int rank) {
         guildrank = rank;
         character.setGuildRank(rank);
     }
-    
+
     public int getAllianceRank() {
         return allianceRank;
     }
-    
+
     public void setAllianceRank(int rank) {
         allianceRank = rank;
         character.setAllianceRank(rank);

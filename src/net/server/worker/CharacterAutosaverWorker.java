@@ -36,7 +36,7 @@ public class CharacterAutosaverWorker extends BaseWorker implements Runnable {
         PlayerStorage ps = wserv.getPlayerStorage();
         for(MapleCharacter chr: ps.getAllCharacters()) {
             if(chr != null && chr.isLoggedin()) {
-                chr.saveCharToDB(false);
+                chr.saveCharToDBType(12);
             }
         }
     }

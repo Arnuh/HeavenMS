@@ -61,7 +61,7 @@ public final class MonsterCarnivalHandler extends AbstractMaplePacketHandler {
                             return;
                         }
 
-                        final MapleMonster mob = MapleLifeFactory.getMonster(mobs.get(num).left);
+                        final MapleMonster mob = MapleLifeFactory.getMonster(mobs.get(num).left, c.getChannel());
                         MonsterCarnival mcpq = c.getPlayer().getMonsterCarnival();
                         if (mcpq != null) {
                             if (!mcpq.canSummonR() && c.getPlayer().getTeam() == 0 || !mcpq.canSummonB() && c.getPlayer().getTeam() == 1) {

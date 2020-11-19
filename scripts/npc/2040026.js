@@ -51,7 +51,7 @@ function action(mode, type, selection) {
             }
         } else if (status == 2) {
             cm.gainItem(4001020, -1);
-            cm.warp(map, map % 1000 == 900 ? 3 : 4);
+            cm.warp(map, map % 1000 == 900 ? 0 : 0);
             cm.dispose();
         }
     }

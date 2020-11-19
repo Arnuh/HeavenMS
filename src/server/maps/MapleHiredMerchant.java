@@ -95,7 +95,7 @@ public class MapleHiredMerchant extends AbstractMapleMapObject {
     private void broadcastToVisitors(final byte[] packet) {
         for (MapleCharacter visitor : visitors) {
             if (visitor != null) {
-                visitor.getClient().announce(packet);
+                visitor.announce(packet);
             }
         }
     }
@@ -182,8 +182,8 @@ public class MapleHiredMerchant extends AbstractMapleMapObject {
                 if (visitor != null) {
                     visitor.setHiredMerchant(null);
                     
-                    visitor.getClient().announce(MaplePacketCreator.leaveHiredMerchant(i + 1, 0x11));
-                    visitor.getClient().announce(MaplePacketCreator.hiredMerchantMaintenanceMessage());
+                    visitor.announce(MaplePacketCreator.leaveHiredMerchant(i + 1, 0x11));
+                    visitor.announce(MaplePacketCreator.hiredMerchantMaintenanceMessage());
                     
                     visitors[i] = null;
                 }
@@ -233,7 +233,7 @@ public class MapleHiredMerchant extends AbstractMapleMapObject {
             }
             
             if (ServerConstants.USE_ENFORCE_MERCHANT_SAVE) {
-                chr.saveCharToDB(false);
+                chr.saveCharToDBType(12);
             }
         }
     }
@@ -256,7 +256,7 @@ public class MapleHiredMerchant extends AbstractMapleMapObject {
         }
     }
     
-    public void buy(MapleClient c, int item, short quantity) {
+    public void buy(MapleClient c, int item, int quantity) {
         synchronized (items) {
             MaplePlayerShopItem pItem = items.get(item);
             Item newItem = pItem.getItem().copy();
@@ -449,7 +449,7 @@ public class MapleHiredMerchant extends AbstractMapleMapObject {
             }
             
             if (ServerConstants.USE_ENFORCE_MERCHANT_SAVE) {
-                c.getPlayer().saveCharToDB(false);
+                c.getPlayer().saveCharToDBType(12);
             }
 
             synchronized (items) {
@@ -630,11 +630,11 @@ public class MapleHiredMerchant extends AbstractMapleMapObject {
 
     public void saveItems(boolean shutdown) throws SQLException {
         List<Pair<Item, MapleInventoryType>> itemsWithType = new ArrayList<>();
-        List<Short> bundles = new ArrayList<>();
+        List<Integer> bundles = new ArrayList<>();
 
         for (MaplePlayerShopItem pItems : getItems()) {
             Item newItem = pItems.getItem();
-            short newBundle = pItems.getBundles();
+            int newBundle = pItems.getBundles();
             
             if (shutdown) { //is "shutdown" really necessary?
                 newItem.setQuantity((short) (pItems.getItem().getQuantity()));
@@ -729,10 +729,10 @@ public class MapleHiredMerchant extends AbstractMapleMapObject {
     public class SoldItem {
 
         int itemid, mesos;
-        short quantity;
+        int quantity;
         String buyer;
 
-        public SoldItem(String buyer, int itemid, short quantity, int mesos) {
+        public SoldItem(String buyer, int itemid, int quantity, int mesos) {
             this.buyer = buyer;
             this.itemid = itemid;
             this.quantity = quantity;
@@ -747,7 +747,7 @@ public class MapleHiredMerchant extends AbstractMapleMapObject {
             return itemid;
         }
 
-        public short getQuantity() {
+        public int getQuantity() {
             return quantity;
         }
 

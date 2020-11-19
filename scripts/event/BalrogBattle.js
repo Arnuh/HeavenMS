@@ -137,13 +137,13 @@ function releaseLeftClaw(eim) {
 function spawnBalrog(eim) {
         var mapObj = eim.getInstanceMap(entryMap);
     
-        mapObj.spawnFakeMonsterOnGroundBelow(MapleLifeFactory.getMonster(8830000), new Packages.java.awt.Point(412, 258));
-        mapObj.spawnMonsterOnGroundBelow(MapleLifeFactory.getMonster(8830002), new Packages.java.awt.Point(412, 258));
-        mapObj.spawnMonsterOnGroundBelow(MapleLifeFactory.getMonster(8830006), new Packages.java.awt.Point(412, 258));
+        mapObj.spawnFakeMonsterOnGroundBelow(MapleLifeFactory.getMonster(8830000, eim.getChannel()), new Packages.java.awt.Point(412, 258));
+        mapObj.spawnMonsterOnGroundBelow(MapleLifeFactory.getMonster(8830002, eim.getChannel()), new Packages.java.awt.Point(412, 258));
+        mapObj.spawnMonsterOnGroundBelow(MapleLifeFactory.getMonster(8830006, eim.getChannel()), new Packages.java.awt.Point(412, 258));
 }
 
 function spawnSealedBalrog(eim) {
-        eim.getInstanceMap(entryMap).spawnMonsterOnGroundBelow(MapleLifeFactory.getMonster(bossMobId), new Packages.java.awt.Point(412, 258));
+        eim.getInstanceMap(entryMap).spawnMonsterOnGroundBelow(MapleLifeFactory.getMonster(bossMobId, eim.getChannel()), new Packages.java.awt.Point(412, 258));
 }
 
 function playerEntry(eim, player) {

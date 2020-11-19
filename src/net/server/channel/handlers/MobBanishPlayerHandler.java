@@ -37,8 +37,8 @@ public final class MobBanishPlayerHandler extends AbstractMaplePacketHandler {
         
         if (mob != null) {
             BanishInfo banishInfo = mob.getBanish();
-            if (banishInfo != null) {
-                chr.changeMapBanish(banishInfo.getMap(), banishInfo.getPortal(), banishInfo.getMsg());
+            if (banishInfo != null || chr.getEventInstance() == null) {
+                //chr.changeMapBanish(banishInfo.getMap(), banishInfo.getPortal(), banishInfo.getMsg());
             }
         }
     }

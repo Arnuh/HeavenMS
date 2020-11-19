@@ -69,18 +69,18 @@ public class MapleAlliance {
         }
         try {
             ResultSet rs;
-            Connection con = DatabaseConnection.getConnection();
-            try (PreparedStatement ps = con.prepareStatement("SELECT name FROM alliance WHERE name = ?")) {
-                ps.setString(1, name);
-                rs = ps.executeQuery();
-                if (rs.next()) {
-                    ps.close();
-                    rs.close();
-                    return false;
+            try (Connection con = DatabaseConnection.getConnection()) {
+                try (PreparedStatement ps = con.prepareStatement("SELECT name FROM alliance WHERE name = ?")) {
+                    ps.setString(1, name);
+                    rs = ps.executeQuery();
+                    if (rs.next()) {
+                        ps.close();
+                        rs.close();
+                        return false;
+                    }
                 }
+                rs.close();
             }
-            rs.close();
-            con.close();
             return true;
         } catch (SQLException e) {
             e.printStackTrace();
@@ -233,37 +233,36 @@ public class MapleAlliance {
 
     public void saveToDB() {
         try {
-            Connection con = DatabaseConnection.getConnection();
-            PreparedStatement ps = con.prepareStatement("UPDATE `alliance` SET capacity = ?, notice = ?, rank1 = ?, rank2 = ?, rank3 = ?, rank4 = ?, rank5 = ? WHERE id = ?");
-            ps.setInt(1, this.capacity);
-            ps.setString(2, this.notice);
-            
-            ps.setString(3, this.rankTitles[0]);
-            ps.setString(4, this.rankTitles[1]);
-            ps.setString(5, this.rankTitles[2]);
-            ps.setString(6, this.rankTitles[3]);
-            ps.setString(7, this.rankTitles[4]);
-            
-            ps.setInt(8, this.allianceId);
-            ps.executeUpdate();
-            ps.close();
-            
-            ps = con.prepareStatement("DELETE FROM `allianceguilds` WHERE allianceid = ?");
-            ps.setInt(1, this.allianceId);
-            ps.executeUpdate();
-            ps.close();
-            
-            for(int i = 0; i < guilds.size(); i++) {
-                int guild = guilds.get(i);
+            try (Connection con = DatabaseConnection.getConnection()) {
+                PreparedStatement ps = con.prepareStatement("UPDATE `alliance` SET capacity = ?, notice = ?, rank1 = ?, rank2 = ?, rank3 = ?, rank4 = ?, rank5 = ? WHERE id = ?");
+                ps.setInt(1, this.capacity);
+                ps.setString(2, this.notice);
                 
-                ps = con.prepareStatement("INSERT INTO `allianceguilds` (`allianceid`, `guildid`) VALUES (?, ?)");
-                ps.setInt(1, this.allianceId);
-                ps.setInt(2, guild);
+                ps.setString(3, this.rankTitles[0]);
+                ps.setString(4, this.rankTitles[1]);
+                ps.setString(5, this.rankTitles[2]);
+                ps.setString(6, this.rankTitles[3]);
+                ps.setString(7, this.rankTitles[4]);
+                
+                ps.setInt(8, this.allianceId);
                 ps.executeUpdate();
                 ps.close();
+                
+                ps = con.prepareStatement("DELETE FROM `allianceguilds` WHERE allianceid = ?");
+                ps.setInt(1, this.allianceId);
+                ps.executeUpdate();
+                ps.close();
+                
+                for(int i = 0; i < guilds.size(); i++) {
+                    int guild = guilds.get(i);
+                    
+                    ps = con.prepareStatement("INSERT INTO `allianceguilds` (`allianceid`, `guildid`) VALUES (?, ?)");
+                    ps.setInt(1, this.allianceId);
+                    ps.setInt(2, guild);
+                    ps.executeUpdate();
+                    ps.close();
+                }
             }
-            
-            con.close();
         } catch (SQLException e) {
             e.printStackTrace();
         }
@@ -484,7 +483,7 @@ public class MapleAlliance {
                     c.getPlayer().dropMessage(5, "The master of the guild that you offered an invitation is currently not online.");
                 } else {
                     if (MapleInviteCoordinator.createInvite(InviteType.ALLIANCE, c.getPlayer(), allianceId, victim.getId())) {
-                        victim.getClient().announce(MaplePacketCreator.allianceInvite(allianceId, c.getPlayer()));
+                        victim.announce(MaplePacketCreator.allianceInvite(allianceId, c.getPlayer()));
                     } else {
                         c.getPlayer().dropMessage(5, "The master of the guild that you offered an invitation is currently managing another invite.");
                     }

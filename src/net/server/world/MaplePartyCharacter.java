@@ -1,30 +1,31 @@
 /*
-	This file is part of the OdinMS Maple Story Server
-    Copyright (C) 2008 Patrick Huy <patrick.huy@frz.cc>
-		       Matthias Butz <matze@odinms.de>
-		       Jan Christian Meyer <vimes@odinms.de>
+ This file is part of the OdinMS Maple Story Server
+ Copyright (C) 2008 Patrick Huy <patrick.huy@frz.cc>
+ Matthias Butz <matze@odinms.de>
+ Jan Christian Meyer <vimes@odinms.de>
 
-    This program is free software: you can redistribute it and/or modify
-    it under the terms of the GNU Affero General Public License as
-    published by the Free Software Foundation version 3 as published by
-    the Free Software Foundation. You may not use, modify or distribute
-    this program under any other version of the GNU Affero General Public
-    License.
+ This program is free software: you can redistribute it and/or modify
+ it under the terms of the GNU Affero General Public License as
+ published by the Free Software Foundation version 3 as published by
+ the Free Software Foundation. You may not use, modify or distribute
+ this program under any other version of the GNU Affero General Public
+ License.
 
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU Affero General Public License for more details.
+ This program is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ GNU Affero General Public License for more details.
 
-    You should have received a copy of the GNU Affero General Public License
-    along with this program.  If not, see <http://www.gnu.org/licenses/>.
-*/
+ You should have received a copy of the GNU Affero General Public License
+ along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
 package net.server.world;
 
 import client.MapleCharacter;
 import client.MapleJob;
 
 public class MaplePartyCharacter {
+
     private String name;
     private int id;
     private int level;
@@ -34,11 +35,11 @@ public class MaplePartyCharacter {
     private boolean online;
     private MapleJob job;
     private MapleCharacter character;
-    
+
     public MaplePartyCharacter(MapleCharacter maplechar) {
         this.character = maplechar;
-    	this.name = maplechar.getName();
-        this.level = maplechar.getLevel();
+        this.name = maplechar.getName();
+        this.level = maplechar.getTotalLevel();
         this.channel = maplechar.getClient().getChannel();
         this.world = maplechar.getWorld();
         this.id = maplechar.getId();
@@ -51,9 +52,9 @@ public class MaplePartyCharacter {
     public MaplePartyCharacter() {
         this.name = "";
     }
-    
+
     public MapleCharacter getPlayer() {
-    	return character;
+        return character;
     }
 
     public MapleJob getJob() {
@@ -71,7 +72,7 @@ public class MaplePartyCharacter {
     public void setChannel(int channel) {
         this.channel = channel;
     }
-    
+
     public boolean isLeader() {
         return getPlayer().isPartyLeader();
     }
@@ -82,6 +83,9 @@ public class MaplePartyCharacter {
 
     public void setOnline(boolean online) {
         this.online = online;
+        if (!online) {
+            this.character = null;  // thanks Feras for noticing offline party members retaining whole character object unnecessarily
+        }
     }
 
     public int getMapId() {
@@ -103,11 +107,11 @@ public class MaplePartyCharacter {
     public int getJobId() {
         return jobid;
     }
-    
+
     public int getGuildId() {
         return character.getGuildId();
     }
-    
+
     @Override
     public int hashCode() {
         final int prime = 31;
@@ -141,5 +145,5 @@ public class MaplePartyCharacter {
     public int getWorld() {
         return world;
     }
-    
+
 }

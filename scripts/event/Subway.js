@@ -8,9 +8,9 @@ var Subway_to_NLC;
 var NLC_docked;
 
 //Time Setting is in millisecond
-var closeTime =     50 * 1000; //The time to close the gate
-var beginTime = 1 * 60 * 1000; //The time to begin the ride
-var  rideTime = 4 * 60 * 1000; //The time that require move to destination
+var closeTime = 60000; //The time to close the gate
+var beginTime = 70000; //The time to begin the ride
+var  rideTime = 30000; //The time that require move to destination
 
 function init() {
     closeTime = em.getTransportationTime(closeTime);

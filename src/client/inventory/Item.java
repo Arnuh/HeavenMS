@@ -33,9 +33,8 @@ public class Item implements Comparable<Item> {
 
     private static AtomicInteger runningCashId = new AtomicInteger(777000000);  // pets & rings shares cashid values
     
-    private int id, cashId, sn;
+    private int id, cashId, sn, quantity, vaultid;
     private short position;
-    private short quantity;
     private int petid = -1;
     private MaplePet pet = null;
     private String owner = "";
@@ -44,7 +43,7 @@ public class Item implements Comparable<Item> {
     private long expiration = -1;
     private String giftFrom = "";
 
-    public Item(int id, short position, short quantity) {
+    public Item(int id, short position, int quantity) {
         this.id = id;
         this.position = position;
         this.quantity = quantity;
@@ -52,7 +51,7 @@ public class Item implements Comparable<Item> {
         this.flag = 0;
     }
 
-    public Item(int id, short position, short quantity, int petid) {
+    public Item(int id, short position, int quantity, int petid) {
         this.id = id;
         this.position = position;
         this.quantity = quantity;
@@ -81,7 +80,7 @@ public class Item implements Comparable<Item> {
         if (this.pet != null) this.pet.setPosition(position);
     }
 
-    public void setQuantity(short quantity) {
+    public void setQuantity(int quantity) {
         this.quantity = quantity;
     }
 
@@ -100,7 +99,7 @@ public class Item implements Comparable<Item> {
         return position;
     }
 
-    public short getQuantity() {
+    public int getQuantity() {
         return quantity;
     }
 
@@ -151,6 +150,9 @@ public class Item implements Comparable<Item> {
     }
 
     public void setFlag(byte b) {
+        //if (this.getItemType() == MapleInventoryType.EQUIP.getType()) {
+        //    this.flag = 8;
+        //}
         this.flag = b;
     }
 
@@ -184,5 +186,12 @@ public class Item implements Comparable<Item> {
     
     public boolean isUntradeable() {
         return ((this.getFlag() & ItemConstants.UNTRADEABLE) == ItemConstants.UNTRADEABLE) || (MapleItemInformationProvider.getInstance().isDropRestricted(this.getItemId()) && !MapleKarmaManipulator.hasKarmaFlag(this));
+    }
+    
+    public boolean isCash(int id) {
+        if (id == 1112908 || id == 1112909 || id == 1112910) {
+            return false;
+        }
+        return MapleItemInformationProvider.getInstance().isCash(id); 
     }
 }

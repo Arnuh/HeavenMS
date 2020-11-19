@@ -39,7 +39,7 @@ public class MapleReactorFactory {
     private static Map<Integer, MapleReactorStats> reactorStats = new HashMap<Integer, MapleReactorStats>();
 
     
-    public static final MapleReactorStats getReactorS(int rid) {
+    public static MapleReactorStats getReactorS(int rid) {
         MapleReactorStats stats = reactorStats.get(Integer.valueOf(rid));
         if (stats == null) {
             int infoId = rid;

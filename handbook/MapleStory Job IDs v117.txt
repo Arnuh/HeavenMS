@@ -1,0 +1,171 @@
+Manager - 800
+GM - 900
+Super GM - 910
+
+Beginner - 0
+
+Warrior - 100
+--------------------------------------------------
+Fighter - 110
+Crusader - 111
+Hero - 112
+--------------------------------------------------
+Page - 120
+White Knight - 121
+Paladin - 122
+--------------------------------------------------
+Spearman - 130
+Dragon Knight - 131
+Dark Knight - 132
+
+Magician - 200
+--------------------------------------------------
+Fire/Poison Wizard - 210
+Fire/Poison Mage - 211
+Fire/Poison Archmage - 212
+--------------------------------------------------
+Ice/Lightning Wizard - 220
+Ice/Lightning Mage - 221
+Ice/Lightning Archmage - 222
+--------------------------------------------------
+Cleric - 230
+Priest - 231
+Bishop - 232
+
+Bowman - 300
+--------------------------------------------------
+Hunter - 310
+Ranger - 311
+Bow Master - 312
+--------------------------------------------------
+Crossbowman - 320
+Sniper - 321
+Marksman - 322
+
+Thief - 400
+--------------------------------------------------
+Assassin - 410
+Hermit - 411
+Night Lord - 412
+--------------------------------------------------
+Bandit - 420
+Chief Bandit - 421
+Shadower - 422
+
+Pirate - 500
+--------------------------------------------------
+Brawler - 510
+Marauder - 511
+Buccaneer - 512
+--------------------------------------------------
+Gunslinger - 520
+Outlaw - 521
+Corsair - 522
+
+Noblesse - 1000
+
+Dawn Warrior 1 - 1100
+Dawn Warrior 2 - 1110
+Dawn Warrior 3 - 1111
+Dawn Warrior 4 - 1112
+
+Blaze Wizard 1 - 1200
+Blaze Wizard 2 - 1210
+Blaze Wizard 3 - 1211
+Blaze Wizard 4 - 1212
+
+Wind Archer 1 - 1300
+Wind Archer 2 - 1310
+Wind Archer 3 - 1311
+Wind Archer 4 - 1312
+
+Night Walker 1 - 1400
+Night Walker 2 - 1410
+Night Walker 3 - 1411
+Night Walker 4 - 1412
+
+Thunder Breaker 1 - 1500
+Thunder Breaker 2 - 1510
+Thunder Breaker 3 - 1511
+Thunder Breaker 4 - 1512
+
+Legend (Aran) - 2000
+--------------------------------------------------
+Aran 1 - 2100
+Aran 2 - 2110
+Aran 3 - 2111
+Aran 4 - 2112
+
+Legend (Evan ) - 2001
+--------------------------------------------------
+Evan 1 - 2200
+Evan 2 - 2210
+Evan 3 - 2211
+Evan 4 - 2212
+Evan 5 - 2213
+Evan 6 - 2214
+Evan 7 - 2215
+Evan 8 - 2216
+Evan 9 - 2217
+Evan 10 - 2218
+
+Blade Recruit - 430
+Blade Acolyte - 431
+Blade Specialist - 432
+Blade Lord - 433
+Blade Master - 434
+
+Citizen - 3000
+
+Mechanic 1 - 3500
+Mechanic 2 - 3510
+Mechanic 3 - 3511
+Mechanic 4 - 3512
+
+Wild Hunter 1 - 3300
+Wild Hunter 2 - 3310
+Wild Hunter 3 - 3311
+Wild Hunter 4 - 3312
+
+Battle Mage 1 - 3200
+Battle Mage 2 - 3210
+Battle Mage 3 - 3211
+Battle Mage 4 - 3212
+
+Pirate (Cannoneer) - 501
+Cannoneer - 530
+Cannon Blaster - 531
+Cannon Master - 532
+
+Mercedes (Beginner) - 2002
+--------------------------------------------------
+Mercedes 1 - 2300
+Mercedes 2 - 2310
+Mercedes 3 - 2311
+Mercedes 4 - 2312
+
+Citizen (Demon Slayer) - 3001
+--------------------------------------------------
+Demon Slayer 1 - 3100
+Demon Slayer 2 - 3110
+Demon Slayer 3 - 3111
+Demon Slayer 4 - 3112
+
+Jett 1 - 508
+Jett 2 - 570
+Jett 3 - 571
+Jett 4 - 572
+
+Phantom (Beginner) - 2003
+--------------------------------------------------
+Phantom 1 - 2400
+Phantom 2 - 2410
+Phantom 3 - 2411
+Phantom 4 - 2412
+
+Mihile (Beginner) - 5000
+--------------------------------------------------
+Mihile 1 - 5100
+Mihile 2 - 5110
+Mihile 3 - 5111
+Mihile 4 - 5112

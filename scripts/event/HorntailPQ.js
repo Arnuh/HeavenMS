@@ -221,6 +221,7 @@ function end(eim) {
 }
 
 function giveRandomEventReward(eim, player) {
+	eim.upgradePartyMedal(100);
         eim.giveEventReward(player);
 }
 

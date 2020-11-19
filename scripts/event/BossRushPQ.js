@@ -34,7 +34,7 @@ var clearMap = 970030000;
 var minMapId = 970030001;
 var maxMapId = 970042711;
 
-var eventTime = 5;     //5 minutes
+var eventTime = 10;     //5 minutes
 
 var lobbyRange = [0, 7];
 
@@ -227,7 +227,9 @@ function giveRandomEventReward(eim, player) {
         eim.giveEventReward(player);
 }
 
-function monsterKilled(mob, eim) {}
+function monsterKilled(mob, eim) {
+
+}
 
 function allMonstersDead(eim) {}
 

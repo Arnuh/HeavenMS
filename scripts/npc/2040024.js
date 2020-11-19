@@ -25,20 +25,27 @@
 	Description: 		Brings you to 71st Floor
 */
 
+var status = 0;
+var em = null;
+
 function start() {
-    if (cm.haveItem(4001020))
-        cm.sendYesNo("You can use #bEos Rock Scroll#k to activate #bFirst Eos Rock#k. Will you teleport to #bSecond Eos Rock#k at the 71st floor?");
-    else {
-        cm.sendOk("There's a rock that will enable you to teleport to #bSecond Eos Rock#k, but it cannot be activated without the scroll.");
-        cm.dispose();
-    }
+	cm.warp(221022900, "go00");
+	cm.dispose();
 }
 
 function action(mode, type, selection) {
-    if (mode < 1) {
+	if (mode == 1) {
+        status++;
     } else {
-        cm.gainItem(4001020, -1);
-        cm.warp(221022900, 3);
+        if (status == 0) {
+            cm.dispose();
+            return;
+        }
+        status--;
     }
+	if (status == 1) {
+		cm.gainItem(4001020, -1);
+        cm.warp(221022900, "go00");
+	}
     cm.dispose();
 }

@@ -24,6 +24,7 @@ package net.server.channel;
 import java.io.File;
 import java.net.InetSocketAddress;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.HashMap;
 import java.util.List;
@@ -81,7 +82,7 @@ import server.maps.MapleMiniDungeonInfo;
 
 public final class Channel {
 
-    private int port = 7575;
+    private int port = 6565;
     private PlayerStorage players = new PlayerStorage();
     private int world, channel;
     private IoAcceptor acceptor;
@@ -141,7 +142,7 @@ public final class Channel {
         this.mapManager = new MapleMapManager(null, world, channel);
         try {
             eventSM = new EventScriptManager(this, getEvents());
-            port = 7575 + this.channel - 1;
+            port = 6565 + this.channel - 1;
             port += (world * 100);
             ip = ServerConstants.HOST + ":" + port;
             IoBuffer.setUseDirectBuffer(false);
@@ -152,9 +153,7 @@ public final class Channel {
             acceptor.getFilterChain().addLast("codec", (IoFilter) new ProtocolCodecFilter(new MapleCodecFactory()));
             acceptor.bind(new InetSocketAddress(port));
             ((SocketSessionConfig) acceptor.getSessionConfig()).setTcpNoDelay(true);
-            for (MapleExpeditionType exped : MapleExpeditionType.values()) {
-            	expedType.add(exped);
-            }
+            expedType.addAll(Arrays.asList(MapleExpeditionType.values()));
             eventSM.init();
             
             dojoStage = new int[20];
@@ -979,28 +978,6 @@ public final class Channel {
         }
     }
     
-    public void registerOwnedMap(MapleMap map) {
-        ownedMaps.add(map);
-    }
-    
-    public void unregisterOwnedMap(MapleMap map) {
-        ownedMaps.remove(map);
-    }
-    
-    public void runCheckOwnedMapsSchedule() {
-        if (!ownedMaps.isEmpty()) {
-            List<MapleMap> ownedMapsList;
-            
-            synchronized (ownedMaps) {
-                ownedMapsList = new ArrayList<>(ownedMaps);
-            }
-            
-            for (MapleMap map : ownedMapsList) {
-                map.checkMapOwnerActivity();
-            }
-        }
-    }
-    
     private static int getMonsterCarnivalRoom(boolean cpq1, int field) {
         return (cpq1 ? 0 : 100) + field;
     }
@@ -1118,4 +1095,5 @@ public final class Channel {
         System.out.println();
         System.out.println("Starttime: " + ongoingStartTime);
     }
+
 }

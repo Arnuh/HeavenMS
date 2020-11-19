@@ -21,7 +21,6 @@
 */
 package client.inventory;
 
-import constants.ExpTable;
 import java.awt.Point;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -34,6 +33,7 @@ import server.movement.LifeMovement;
 import server.movement.LifeMovementFragment;
 import client.MapleCharacter;
 import client.inventory.manipulator.MapleCashidGenerator;
+import constants.ExpTable;
 import java.sql.Connection;
 import tools.MaplePacketCreator;
 import tools.Pair;
@@ -98,75 +98,11 @@ public class MaplePet extends Item {
         }
     }
     
-    private static void unreferenceMissingPetsFromInventoryDb() {
-        PreparedStatement ps = null;
-        Connection con = null;
-        try {
-            con = DatabaseConnection.getConnection();
-            
-            ps = con.prepareStatement("UPDATE inventoryitems SET petid = -1, expiration = 0 WHERE petid != -1 AND petid NOT IN (SELECT petid FROM pets)");
-            ps.executeUpdate();
-            
-            ps.close();
-            con.close();
-        } catch(SQLException ex) {
-            ex.printStackTrace();
-        } finally {
-            try {
-                if(ps != null && !ps.isClosed()) {
-                    ps.close();
-                }
-                if(con != null && !con.isClosed()) {
-                    con.close();
-                }
-            } catch (SQLException e) {
-                e.printStackTrace();
-            }
-        }
-    }
-    
-    private static void deleteMissingPetsFromDb() {
-        PreparedStatement ps = null;
-        Connection con = null;
-        try {
-            con = DatabaseConnection.getConnection();
-            
-            ps = con.prepareStatement("DELETE FROM pets WHERE petid NOT IN (SELECT petid FROM inventoryitems WHERE petid != -1)");
-            ps.executeUpdate();
-            
-            ps.close();
-            con.close();
-        } catch(SQLException ex) {
-            ex.printStackTrace();
-        } finally {
-            try {
-                if(ps != null && !ps.isClosed()) {
-                    ps.close();
-                }
-                if(con != null && !con.isClosed()) {
-                    con.close();
-                }
-            } catch (SQLException e) {
-                e.printStackTrace();
-            }
-        }
-    }
-    
-    public static void clearMissingPetsFromDb() {
-        unreferenceMissingPetsFromInventoryDb();
-        deleteMissingPetsFromDb();
-    }
-    
     public static void deleteFromDb(MapleCharacter owner, int petid) {
         try {
             Connection con = DatabaseConnection.getConnection();
             
-            PreparedStatement ps = con.prepareStatement("DELETE FROM pets WHERE `petid` = ?");
-            ps.setInt(1, petid);
-            ps.executeUpdate();
-            ps.close();
-            
-            ps = con.prepareStatement("DELETE FROM petignores WHERE `petid` = ?");  // thanks Vcoc for detecting petignores remaining after deletion
+            PreparedStatement ps = con.prepareStatement("DELETE FROM pets WHERE `petid` = ?");  // thanks Vcoc for detecting petignores remaining after deletion
             ps.setInt(1, petid);
             ps.executeUpdate();
             ps.close();
@@ -189,7 +125,7 @@ public class MaplePet extends Item {
             ps.setInt(3, getCloseness());
             ps.setInt(4, getFullness());
             ps.setInt(5, isSummoned() ? 1 : 0);
-            ps.setInt(6, getPetFlag());
+            ps.setInt(6, 1);
             ps.setInt(7, getUniqueId());
             ps.executeUpdate();
             ps.close();
@@ -281,7 +217,7 @@ public class MaplePet extends Item {
                 closeness = newCloseness;
                 while(newCloseness >= ExpTable.getClosenessNeededForLevel(level)) {
                     level += 1;
-                    owner.getClient().announce(MaplePacketCreator.showOwnPetLevelUp(slot));
+                    owner.announce(MaplePacketCreator.showOwnPetLevelUp(slot));
                     owner.getMap().broadcastMessage(MaplePacketCreator.showPetLevelUp(owner, slot));
                 }
             }

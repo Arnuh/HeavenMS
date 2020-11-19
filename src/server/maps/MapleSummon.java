@@ -33,7 +33,7 @@ import tools.MaplePacketCreator;
  */
 public class MapleSummon extends AbstractAnimatedMapleMapObject {
     private MapleCharacter owner;
-    private byte skillLevel;
+    private int skillLevel;
     private int skill, hp;
     private SummonMovementType movementType;
 
@@ -81,7 +81,7 @@ public class MapleSummon extends AbstractAnimatedMapleMapObject {
         return (skill == 3111002 || skill == 3211002 || skill == 5211001 || skill == 13111004);
     }
 
-    public byte getSkillLevel() {
+    public int getSkillLevel() {
         return skillLevel;
     }
 

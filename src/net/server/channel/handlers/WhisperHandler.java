@@ -61,7 +61,7 @@ public final class WhisperHandler extends AbstractMaplePacketHandler {
             	return;
             }
             if (player != null) {
-                player.getClient().announce(MaplePacketCreator.getWhisper(c.getPlayer().getName(), c.getChannel(), text));
+                player.announce(MaplePacketCreator.getWhisper(c.getPlayer().getName(), c.getChannel(), text));
                 if (ServerConstants.USE_ENABLE_CHAT_LOG) {
                     LogHelper.logChat(c, "Whisper To " + player.getName(), text);
                 }

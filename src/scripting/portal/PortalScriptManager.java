@@ -69,18 +69,20 @@ public class PortalScriptManager {
             fr = new FileReader(scriptFile);
             
             // java 8 support here thanks to Arufonsu
-            if (ServerConstants.JAVA_8){
-                    portal.eval("load('nashorn:mozilla_compat.js');" + System.lineSeparator());
-            }
+            //if (ServerConstants.JAVA_8){
+            //        portal.eval("load('nashorn:mozilla_compat.js');" + System.lineSeparator());
+            //}
             
             ((Compilable) portal).compile(fr).eval();
         } catch (ScriptException | IOException | UndeclaredThrowableException e) {
+            System.out.println("Error in Portal Script " + scriptName);
             FilePrinter.printError(FilePrinter.PORTAL + scriptName + ".txt", e);
         } finally {
             if (fr != null) {
                 try {
                     fr.close();
                 } catch (IOException e) {
+                    System.out.println("Error in Portal Script " + scriptName);
                     e.printStackTrace();
                 }
             }

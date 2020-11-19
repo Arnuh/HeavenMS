@@ -32,11 +32,11 @@ function action(mode, type, selection){
 		var map = player.getMap();
 
 		for(var i = 0; i < 10; i++)
-			map.spawnMonsterOnGroundBelow(MapleLifeFactory.getMonster(mobId), new java.awt.Point(117, 183));
+			map.spawnMonsterOnGroundBelow(MapleLifeFactory.getMonster(mobId, cm.getChannel()), new java.awt.Point(117, 183));
 		for(var i = 0; i < 10; i++)
-			map.spawnMonsterOnGroundBelow(MapleLifeFactory.getMonster(mobId), new java.awt.Point(4, 183));
+			map.spawnMonsterOnGroundBelow(MapleLifeFactory.getMonster(mobId, cm.getChannel()), new java.awt.Point(4, 183));
 		for(var i = 0; i < 10; i++)
-			map.spawnMonsterOnGroundBelow(MapleLifeFactory.getMonster(mobId), new java.awt.Point(-109, 183));
+			map.spawnMonsterOnGroundBelow(MapleLifeFactory.getMonster(mobId, cm.getChannel()), new java.awt.Point(-109, 183));
 
 		cm.completeQuest(20718, 1103003);
 		cm.gainExp(4000 * cm.getPlayer().getExpRate());

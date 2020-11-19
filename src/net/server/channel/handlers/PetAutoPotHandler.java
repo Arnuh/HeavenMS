@@ -51,7 +51,9 @@ public final class PetAutoPotHandler extends AbstractMaplePacketHandler {
     
     @Override
     public final void handlePacket(SeekableLittleEndianAccessor slea, MapleClient c) {
-        if (!c.getPlayer().isAlive()) {
+        MapleCharacter chr = c.getPlayer();
+
+        if (!chr.isAlive() || !chr.getMap().getConsume()) {
             c.announce(MaplePacketCreator.enableActions());
             return;
         }
@@ -62,7 +64,6 @@ public final class PetAutoPotHandler extends AbstractMaplePacketHandler {
         slot = slea.readShort();
         itemId = slea.readInt();
         
-        MapleCharacter chr = c.getPlayer();
         MapleInventory useInv = chr.getInventory(MapleInventoryType.USE);
         
         int useCount = 0, qtyCount = 0;
@@ -117,7 +118,7 @@ public final class PetAutoPotHandler extends AbstractMaplePacketHandler {
                 }
 
                 while (true) {
-                    short qtyToUse = (short) Math.min(qtyCount, toUse.getQuantity());
+                    int qtyToUse = Math.min(qtyCount, toUse.getQuantity());
                     MapleInventoryManipulator.removeFromSlot(c, MapleInventoryType.USE, slot, qtyToUse, false);
                     
                     curHp += (incHp * qtyToUse);

@@ -11,6 +11,6 @@ function start(ms){
 			return;   	       
 		}
 
-		map.spawnMonsterOnGroundBelow(MapleLifeFactory.getMonster(mobId), new java.awt.Point(-1027, 216));
+		map.spawnMonsterOnGroundBelow(MapleLifeFactory.getMonster(mobId, map.getChannelId()), new java.awt.Point(-1027, 216));
 	}
 }

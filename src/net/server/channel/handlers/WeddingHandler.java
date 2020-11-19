@@ -41,7 +41,7 @@ public final class WeddingHandler extends AbstractMaplePacketHandler {
                 if (mode == 6) { //additem
                     short slot = slea.readShort();
                     int itemid = slea.readInt();
-                    short quantity = slea.readShort();
+                    int quantity = slea.readShort() & 0xFFFF;
 
                     MapleMarriage marriage = c.getPlayer().getMarriageInstance();
                     if (marriage != null) {
@@ -69,7 +69,7 @@ public final class WeddingHandler extends AbstractMaplePacketHandler {
                                                         marriage.addGiftItem(groomWishlist, newItem);
                                                         MapleInventoryManipulator.removeFromSlot(c, type, slot, quantity, false, false);
 
-                                                        if (ServerConstants.USE_ENFORCE_MERCHANT_SAVE) chr.saveCharToDB(false); 
+                                                        if (ServerConstants.USE_ENFORCE_MERCHANT_SAVE) chr.saveCharToDBType(12); 
                                                         marriage.saveGiftItemsToDb(c, groomWishlist, cid);
 
                                                         MapleKarmaManipulator.toggleKarmaFlagToUntradeable(newItem);

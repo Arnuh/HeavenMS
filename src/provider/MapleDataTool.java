@@ -1,24 +1,24 @@
 /*
-	This file is part of the OdinMS Maple Story Server
-    Copyright (C) 2008 Patrick Huy <patrick.huy@frz.cc>
-		       Matthias Butz <matze@odinms.de>
-		       Jan Christian Meyer <vimes@odinms.de>
+ This file is part of the OdinMS Maple Story Server
+ Copyright (C) 2008 Patrick Huy <patrick.huy@frz.cc>
+ Matthias Butz <matze@odinms.de>
+ Jan Christian Meyer <vimes@odinms.de>
 
-    This program is free software: you can redistribute it and/or modify
-    it under the terms of the GNU Affero General Public License as
-    published by the Free Software Foundation version 3 as published by
-    the Free Software Foundation. You may not use, modify or distribute
-    this program under any other version of the GNU Affero General Public
-    License.
+ This program is free software: you can redistribute it and/or modify
+ it under the terms of the GNU Affero General Public License as
+ published by the Free Software Foundation version 3 as published by
+ the Free Software Foundation. You may not use, modify or distribute
+ this program under any other version of the GNU Affero General Public
+ License.
 
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU Affero General Public License for more details.
+ This program is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ GNU Affero General Public License for more details.
 
-    You should have received a copy of the GNU Affero General Public License
-    along with this program.  If not, see <http://www.gnu.org/licenses/>.
-*/
+ You should have received a copy of the GNU Affero General Public License
+ along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
 package provider;
 
 import java.awt.Point;
@@ -26,6 +26,7 @@ import java.awt.image.BufferedImage;
 import provider.wz.MapleDataType;
 
 public class MapleDataTool {
+
     public static String getString(MapleData data) {
         return ((String) data.getData());
     }
@@ -58,7 +59,13 @@ public class MapleDataTool {
         if (data == null || data.getData() == null) {
             return 0;// DEF?
         }
-        return ((Integer) data.getData()).intValue();
+        if (data.getType() == MapleDataType.STRING) {
+            return Integer.parseInt(getString(data));
+        } else if (data.getType() == MapleDataType.SHORT) {
+            return Integer.valueOf(((Short) data.getData()).shortValue());
+        } else {
+            return ((Integer) data.getData()).intValue();
+        }
     }
 
     public static int getInt(String path, MapleData data) {
@@ -66,34 +73,27 @@ public class MapleDataTool {
     }
 
     public static int getIntConvert(MapleData data) {
-        if (data.getType() == MapleDataType.STRING) {
-            return Integer.parseInt(getString(data));
-        } else {
-            return getInt(data);
-        }
+        return getInt(data);
     }
-    
+
     public static int getIntConvert(MapleData data, int def) {
         if (data == null) {
             return def;
         }
         if (data.getType() == MapleDataType.STRING) {
-	    String dd = getString(data);
-	    if (dd.endsWith("%")) {
-		dd = dd.substring(0, dd.length() - 1);
-	    }
-            try {
-                return Integer.parseInt(dd);
-            } catch (NumberFormatException nfe) {
-                return def;
-            }
+            return Integer.parseInt(getString(data));
+        } else if (data.getType() == MapleDataType.SHORT) {
+            return Integer.valueOf(((Short) data.getData()).shortValue());
         } else {
-            return getInt(data, def);
+            return ((Integer) data.getData()).intValue();
         }
     }
 
     public static int getIntConvert(String path, MapleData data) {
         MapleData d = data.getChildByPath(path);
+        if (d == null) {
+            return 0;
+        }
         if (d.getType() == MapleDataType.STRING) {
             return Integer.parseInt(getString(d));
         } else {
@@ -103,11 +103,15 @@ public class MapleDataTool {
 
     public static int getInt(MapleData data, int def) {
         if (data == null || data.getData() == null) {
-            return  def;
-        } else if (data.getType() == MapleDataType.STRING) {
-            return Integer.parseInt(getString(data));
+            return def;
         } else {
-            return ((Integer) data.getData()).intValue();
+            if (data.getType() == MapleDataType.STRING) {
+                return Integer.parseInt(getString(data));
+            } else if (data.getType() == MapleDataType.SHORT) {
+                return Integer.valueOf(((Short) data.getData()).shortValue());
+            } else {
+                return ((Integer) data.getData()).intValue();
+            }
         }
     }
 
@@ -116,20 +120,10 @@ public class MapleDataTool {
     }
 
     public static int getIntConvert(String path, MapleData data, int def) {
-        MapleData d = data.getChildByPath(path);
-        if (d == null) {
+        if (data == null) {
             return def;
         }
-        if (d.getType() == MapleDataType.STRING) {
-            try {
-                return Integer.parseInt(getString(d));
-            } catch (NumberFormatException nfe) {
-                nfe.printStackTrace();
-                return def;
-            }
-        } else {
-            return getInt(d, def);
-        }
+        return getIntConvert(data.getChildByPath(path), def);
     }
 
     public static BufferedImage getImage(MapleData data) {

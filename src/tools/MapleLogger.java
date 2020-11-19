@@ -61,7 +61,6 @@ public class MapleLogger {
 		case TAKE_DAMAGE:
 		case MOVE_PET:
 		case MOVE_LIFE:
-		case NPC_ACTION:
 		case FACE_EXPRESSION:
 			return true;
 		default:

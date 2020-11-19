@@ -1,6 +1,6 @@
 /*
     This file is part of the HeavenMS MapleStory Server
-    Copyleft (L) 2016 - 2018 RonanLana
+    Copyleft (L) 2016 - 2019 RonanLana
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU Affero General Public License as
@@ -20,17 +20,17 @@
 package client;
 
 import constants.GameConstants;
-import constants.ServerConstants;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantReadWriteLock;
-import java.util.concurrent.locks.ReentrantReadWriteLock.ReadLock;
-import java.util.concurrent.locks.ReentrantReadWriteLock.WriteLock;
 import net.server.audit.locks.MonitoredLockType;
+import net.server.audit.locks.MonitoredReadLock;
 import net.server.audit.locks.MonitoredReentrantReadWriteLock;
+import net.server.audit.locks.MonitoredWriteLock;
+import net.server.audit.locks.factory.MonitoredReadLockFactory;
 import net.server.audit.locks.factory.MonitoredReentrantLockFactory;
+import net.server.audit.locks.factory.MonitoredWriteLockFactory;
 import server.maps.AbstractAnimatedMapleMapObject;
 import server.maps.MapleMap;
 
@@ -50,13 +50,13 @@ public abstract class AbstractMapleCharacterObject extends AbstractAnimatedMaple
     protected Map<MapleStat, Integer> statUpdates = new HashMap<>();
     
     protected Lock effLock = MonitoredReentrantLockFactory.createLock(MonitoredLockType.CHARACTER_EFF, true);
-    protected ReadLock statRlock;
-    protected WriteLock statWlock;
+    protected final MonitoredReadLock statRlock;
+    protected final MonitoredWriteLock statWlock;
     
     protected AbstractMapleCharacterObject() {
-        ReentrantReadWriteLock locks = new MonitoredReentrantReadWriteLock(MonitoredLockType.CHARACTER_STA, true);
-        statRlock = locks.readLock();
-        statWlock = locks.writeLock();
+        MonitoredReentrantReadWriteLock locks = new MonitoredReentrantReadWriteLock(MonitoredLockType.CHARACTER_STA, true);
+        statRlock = MonitoredReadLockFactory.createLock(locks);
+        statWlock = MonitoredWriteLockFactory.createLock(locks);
         
         for (int i = 0; i < remainingSp.length; i++) {
             remainingSp[i] = 0;
@@ -220,6 +220,10 @@ public abstract class AbstractMapleCharacterObject extends AbstractAnimatedMaple
         listener.onHpmpPoolUpdate();
     }
     
+    private void dispatchStatUpdated() {
+        listener.onStatUpdate();
+    }
+    
     private void dispatchStatPoolUpdateAnnounced() {
         listener.onAnnounceStatPoolUpdate();
     }
@@ -263,28 +267,32 @@ public abstract class AbstractMapleCharacterObject extends AbstractAnimatedMaple
     protected void setMaxHp(int hp_) {
         if (this.maxhp < hp_) this.transienthp = Float.NEGATIVE_INFINITY;
         this.maxhp = hp_;
-        this.clientmaxhp = Math.min(30000, hp_);
+        this.clientmaxhp = Math.min(32000, hp_);
     }
     
     protected void setMaxMp(int mp_) {
         if (this.maxmp < mp_) this.transientmp = Float.NEGATIVE_INFINITY;
         this.maxmp = mp_;
-        this.clientmaxmp = Math.min(30000, mp_);
+        this.clientmaxmp = Math.min(32000, mp_);
     }
     
-    private static long calcStatPoolNode(long v, int displacement) {
-        if (v > Short.MAX_VALUE) {
-            v = Short.MAX_VALUE;
-        } else if (v < Short.MIN_VALUE) {
-            v = Short.MIN_VALUE;
+    private static long clampStat(int v, int min, int max) {
+        return (v < min) ? min : ((v > max) ? max : v);
+    }
+    
+    private static long calcStatPoolNode(Integer v, int displacement) {
+        long r;
+        if (v == null) {
+            r = -32768;
+        } else {
+            r = clampStat(v, -32767, 32767);
         }
         
-        return ((v & 0x0FFFF) << displacement);
+        return ((r & 0x0FFFF) << displacement);
     }
     
-    private static long calcStatPoolLong(int v1, int v2, int v3, int v4) {
+    private static long calcStatPoolLong(Integer v1, Integer v2, Integer v3, Integer v4) {
         long ret = 0;
-        
         ret |= calcStatPoolNode(v1, 48);
         ret |= calcStatPoolNode(v2, 32);
         ret |= calcStatPoolNode(v3, 16);
@@ -295,16 +303,16 @@ public abstract class AbstractMapleCharacterObject extends AbstractAnimatedMaple
     
     private void changeStatPool(Long hpMpPool, Long strDexIntLuk, Long newSp, int newAp, boolean silent) {
         effLock.lock();
-        statWlock.lock();
         try {
             statUpdates.clear();
             boolean poolUpdate = false;
+            boolean statUpdate = false;
 
             if (hpMpPool != null) {
-                short newHp = (short) (hpMpPool >> 48);
-                short newMp = (short) (hpMpPool >> 32);
-                short newMaxHp = (short) (hpMpPool >> 16);
-                short newMaxMp = (short) (hpMpPool.shortValue());
+                int newHp = (short) (hpMpPool >> 48);
+                int newMp = (short) (hpMpPool >> 32);
+                int newMaxHp = (short) (hpMpPool >> 16);
+                int newMaxMp = (short) (hpMpPool.shortValue());
                 
                 if (newMaxHp != Short.MIN_VALUE) {
                     if (newMaxHp < 50) {
@@ -370,7 +378,7 @@ public abstract class AbstractMapleCharacterObject extends AbstractAnimatedMaple
                     statUpdates.put(MapleStat.AVAILABLEAP, remainingAp);
                 }
 
-                poolUpdate = true;  // recalc stats
+                statUpdate = true;
             }
             
             if (newSp != null) {
@@ -385,13 +393,16 @@ public abstract class AbstractMapleCharacterObject extends AbstractAnimatedMaple
                 if (poolUpdate) {
                     dispatchHpmpPoolUpdated();
                 }
+                
+                if (statUpdate) {
+                    dispatchStatUpdated();
+                }
 
                 if (!silent) {
                     dispatchStatPoolUpdateAnnounced();
                 }
             }
         } finally {
-            statWlock.unlock();
             effLock.unlock();
         }
     }
@@ -409,58 +420,63 @@ public abstract class AbstractMapleCharacterObject extends AbstractAnimatedMaple
     }
     
     protected void changeHpMp(int newhp, int newmp, boolean silent) {
-        changeHpMpPool(newhp, newmp, Short.MIN_VALUE, Short.MIN_VALUE, silent);
+        changeHpMpPool(newhp, newmp, null, null, silent);
     }
     
-    private void changeHpMpPool(int hp, int mp, int maxhp, int maxmp, boolean silent) {
+    private void changeHpMpPool(Integer hp, Integer mp, Integer maxhp, Integer maxmp, boolean silent) {
         long hpMpPool = calcStatPoolLong(hp, mp, maxhp, maxmp);
         changeStatPool(hpMpPool, null, null, -1, silent);
     }
     
     public void updateHp(int hp) {
-        updateHpMaxHp(hp, Short.MIN_VALUE);
+        updateHpMaxHp(hp, null);
     }
     
     public void updateMaxHp(int maxhp) {
-        updateHpMaxHp(Short.MIN_VALUE, maxhp);
+        updateHpMaxHp(null, maxhp);
     }
     
     public void updateHpMaxHp(int hp, int maxhp) {
-        changeHpMpPool(hp, Short.MIN_VALUE, maxhp, Short.MIN_VALUE, false);
+        updateHpMaxHp(Integer.valueOf(hp), Integer.valueOf(maxhp));
+    }
+    
+    private void updateHpMaxHp(Integer hp, Integer maxhp) {
+        changeHpMpPool(hp, null, maxhp, null, false);
     }
     
     public void updateMp(int mp) {
-        updateMpMaxMp(mp, Short.MIN_VALUE);
+        updateMpMaxMp(mp, null);
     }
     
     public void updateMaxMp(int maxmp) {
-        updateMpMaxMp(Short.MIN_VALUE, maxmp);
+        updateMpMaxMp(null, maxmp);
     }
     
     public void updateMpMaxMp(int mp, int maxmp) {
-        changeHpMpPool(Short.MIN_VALUE, mp, Short.MIN_VALUE, maxmp, false);
+        updateMpMaxMp(Integer.valueOf(mp), Integer.valueOf(maxmp));
+    }
+    
+    private void updateMpMaxMp(Integer mp, Integer maxmp) {
+        changeHpMpPool(null, mp, null, maxmp, false);
     }
     
     public void updateMaxHpMaxMp(int maxhp, int maxmp) {
-        changeHpMpPool(Short.MIN_VALUE, Short.MIN_VALUE, maxhp, maxmp, false);
+        changeHpMpPool(null, null, maxhp, maxmp, false);
     }
     
     protected void enforceMaxHpMp() {
         effLock.lock();
-        statWlock.lock();
         try {
             if (mp > localmaxmp || hp > localmaxhp) {
                 changeHpMp(hp, mp, false);
             }
         } finally {
-            statWlock.unlock();
             effLock.unlock();
         }
     }
     
     public int safeAddHP(int delta) {
         effLock.lock();
-        statWlock.lock();
         try {
             if (hp + delta <= 0) {
                 delta = -hp + 1;
@@ -469,73 +485,60 @@ public abstract class AbstractMapleCharacterObject extends AbstractAnimatedMaple
             addHP(delta);
             return delta;
         } finally {
-            statWlock.unlock();
             effLock.unlock();
         }
     }
     
     public void addHP(int delta) {
         effLock.lock();
-        statWlock.lock();
         try {
             updateHp(hp + delta);
         } finally {
-            statWlock.unlock();
             effLock.unlock();
         }
     }
     
     public void addMP(int delta) {
         effLock.lock();
-        statWlock.lock();
         try {
             updateMp(mp + delta);
         } finally {
-            statWlock.unlock();
             effLock.unlock();
         }
     }
 
     public void addMPHP(int hpDelta, int mpDelta) {
         effLock.lock();
-        statWlock.lock();
         try {
             updateHpMp(hp + hpDelta, mp + mpDelta);
         } finally {
-            statWlock.unlock();
             effLock.unlock();
         }
     }
     
     protected void addMaxMPMaxHP(int hpdelta, int mpdelta, boolean silent) {
         effLock.lock();
-        statWlock.lock();
         try {
-            changeHpMpPool(Short.MIN_VALUE, Short.MIN_VALUE, maxhp + hpdelta, maxmp + mpdelta, silent);
+            changeHpMpPool(null, null, maxhp + hpdelta, maxmp + mpdelta, silent);
         } finally {
-            statWlock.unlock();
             effLock.unlock();
         }
     }
     
     public void addMaxHP(int delta) {
         effLock.lock();
-        statWlock.lock();
         try {
             updateMaxHp(maxhp + delta);
         } finally {
-            statWlock.unlock();
             effLock.unlock();
         }
     }
     
     public void addMaxMP(int delta) {
         effLock.lock();
-        statWlock.lock();
         try {
             updateMaxMp(maxmp + delta);
         } finally {
-            statWlock.unlock();
             effLock.unlock();
         }
     }
@@ -557,96 +560,83 @@ public abstract class AbstractMapleCharacterObject extends AbstractAnimatedMaple
     }
     
     public boolean assignStr(int x) {
-        return assignStrDexIntLuk(x, Short.MIN_VALUE, Short.MIN_VALUE, Short.MIN_VALUE);
+        return assignStrDexIntLuk(x, null, null, null);
     }
     
     public boolean assignDex(int x) {
-        return assignStrDexIntLuk(Short.MIN_VALUE, x, Short.MIN_VALUE, Short.MIN_VALUE);
+        return assignStrDexIntLuk(null, x, null, null);
     }
     
     public boolean assignInt(int x) {
-        return assignStrDexIntLuk(Short.MIN_VALUE, Short.MIN_VALUE, x, Short.MIN_VALUE);
+        return assignStrDexIntLuk(null, null, x, null);
     }
     
     public boolean assignLuk(int x) {
-        return assignStrDexIntLuk(Short.MIN_VALUE, Short.MIN_VALUE, Short.MIN_VALUE, x);
+        return assignStrDexIntLuk(null, null, null, x);
     }
     
     public boolean assignHP(int deltaHP, int deltaAp) {
         effLock.lock();
-        statWlock.lock();
         try {
-            if (remainingAp - deltaAp < 0 || hpMpApUsed + deltaAp < 0 || maxhp >= 30000) {
+            if (remainingAp - deltaAp < 0 || hpMpApUsed + deltaAp < 0 || maxhp >= 32000) {
                 return false;
             }
             
-            long hpMpPool = calcStatPoolLong(Short.MIN_VALUE, Short.MIN_VALUE, maxhp + deltaHP, maxmp);
+            long hpMpPool = calcStatPoolLong(null, null, maxhp + deltaHP, maxmp);
             long strDexIntLuk = calcStatPoolLong(str, dex, int_, luk);
 
             changeStatPool(hpMpPool, strDexIntLuk, null, remainingAp - deltaAp, false);
             setHpMpApUsed(hpMpApUsed + deltaAp);
             return true;
         } finally {
-            statWlock.unlock();
             effLock.unlock();
         }
     }
     
     public boolean assignMP(int deltaMP, int deltaAp) {
         effLock.lock();
-        statWlock.lock();
         try {
-            if (remainingAp - deltaAp < 0 || hpMpApUsed + deltaAp < 0 || maxmp >= 30000) {
+            if (remainingAp - deltaAp < 0 || hpMpApUsed + deltaAp < 0 || maxmp >= 32000) {
                 return false;
             }
 
-            long hpMpPool = calcStatPoolLong(Short.MIN_VALUE, Short.MIN_VALUE, maxhp, maxmp + deltaMP);
+            long hpMpPool = calcStatPoolLong(null, null, maxhp, maxmp + deltaMP);
             long strDexIntLuk = calcStatPoolLong(str, dex, int_, luk);
 
             changeStatPool(hpMpPool, strDexIntLuk, null, remainingAp - deltaAp, false);
             setHpMpApUsed(hpMpApUsed + deltaAp);
             return true;
         } finally {
-            statWlock.unlock();
             effLock.unlock();
         }
     }
     
-    private static int apAssigned(int x) {
-        return x != Short.MIN_VALUE ? x : 0;
+    private static int apAssigned(Integer x) {
+        return x != null ? x : 0;
     }
     
     public boolean assignStrDexIntLuk(int deltaStr, int deltaDex, int deltaInt, int deltaLuk) {
+        return assignStrDexIntLuk(Integer.valueOf(deltaStr), Integer.valueOf(deltaDex), Integer.valueOf(deltaInt), Integer.valueOf(deltaLuk));
+    }
+    
+    private boolean assignStrDexIntLuk(Integer deltaStr, Integer deltaDex, Integer deltaInt, Integer deltaLuk) {
         effLock.lock();
-        statWlock.lock();
         try {
             int apUsed = apAssigned(deltaStr) + apAssigned(deltaDex) + apAssigned(deltaInt) + apAssigned(deltaLuk);
             if (apUsed > remainingAp) {
                 return false;
             }
 
-            int newStr = str + deltaStr, newDex = dex + deltaDex, newInt = int_ + deltaInt, newLuk = luk + deltaLuk;
-            if (newStr < 4 && deltaStr != Short.MIN_VALUE || newStr > ServerConstants.MAX_AP) {
-                return false;
-            }
-
-            if (newDex < 4 && deltaDex != Short.MIN_VALUE || newDex > ServerConstants.MAX_AP) {
-                return false;
-            }
-
-            if (newInt < 4 && deltaInt != Short.MIN_VALUE || newInt > ServerConstants.MAX_AP) {
-                return false;
-            }
-
-            if (newLuk < 4 && deltaLuk != Short.MIN_VALUE || newLuk > ServerConstants.MAX_AP) {
-                return false;
-            }
-
+            int newStr = str, newDex = dex, newInt = int_, newLuk = luk;
+            if (deltaStr != null) newStr += deltaStr;   // thanks Rohenn for noticing an NPE case after "null" started being used
+            if (deltaDex != null) newDex += deltaDex;
+            if (deltaInt != null) newInt += deltaInt;
+            if (deltaLuk != null) newLuk += deltaLuk;
+            
             int newAp = remainingAp - apUsed;
             updateStrDexIntLuk(newStr, newDex, newInt, newLuk, newAp);
             return true;
         } finally {
-            statWlock.unlock();
             effLock.unlock();
         }
     }
@@ -657,22 +647,18 @@ public abstract class AbstractMapleCharacterObject extends AbstractAnimatedMaple
     
     public void changeRemainingAp(int x, boolean silent) {
         effLock.lock();
-        statWlock.lock();
         try {
             changeStrDexIntLuk(str, dex, int_, luk, x, silent);
         } finally {
-            statWlock.unlock();
             effLock.unlock();
         }
     }
     
     public void gainAp(int deltaAp, boolean silent) {
         effLock.lock();
-        statWlock.lock();
         try {
             changeRemainingAp(Math.max(0, remainingAp + deltaAp), silent);
         } finally {
-            statWlock.unlock();
             effLock.unlock();
         }
     }
@@ -681,12 +667,12 @@ public abstract class AbstractMapleCharacterObject extends AbstractAnimatedMaple
         changeStrDexIntLuk(str, dex, int_, luk, remainingAp, false);
     }
     
-    private void changeStrDexIntLuk(int str, int dex, int int_, int luk, int remainingAp, boolean silent) {
+    private void changeStrDexIntLuk(Integer str, Integer dex, Integer int_, Integer luk, int remainingAp, boolean silent) {
         long strDexIntLuk = calcStatPoolLong(str, dex, int_, luk);
         changeStatPool(null, strDexIntLuk, null, remainingAp, silent);
     }
     
-    private void changeStrDexIntLukSp(int str, int dex, int int_, int luk, int remainingAp, int remainingSp, int skillbook, boolean silent) {
+    private void changeStrDexIntLukSp(Integer str, Integer dex, Integer int_, Integer luk, int remainingAp, int remainingSp, int skillbook, boolean silent) {
         long strDexIntLuk = calcStatPoolLong(str, dex, int_, luk);
         long sp = calcStatPoolLong(0, 0, remainingSp, skillbook);
         changeStatPool(null, strDexIntLuk, sp, remainingAp, silent);
@@ -698,11 +684,9 @@ public abstract class AbstractMapleCharacterObject extends AbstractAnimatedMaple
     
     protected void setRemainingSp(int[] sps) {
         effLock.lock();
-        statWlock.lock();
         try {
             System.arraycopy(sps, 0, remainingSp, 0, sps.length);
         } finally {
-            statWlock.unlock();
             effLock.unlock();
         }
     }
@@ -718,11 +702,9 @@ public abstract class AbstractMapleCharacterObject extends AbstractAnimatedMaple
     
     public void gainSp(int deltaSp, int skillbook, boolean silent) {
         effLock.lock();
-        statWlock.lock();
         try {
             changeRemainingSp(Math.max(0, remainingSp[skillbook] + deltaSp), skillbook, silent);
         } finally {
-            statWlock.unlock();
             effLock.unlock();
         }
     }

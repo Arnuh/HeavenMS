@@ -18,8 +18,8 @@ function action(mode, type, selection) {
 	status--;
     }
     if (status == 0) {
-        if(cm.getLevel() >= 20) {
-                cm.sendOk("This training ground is available only for those under level 20.");
+        if(cm.getLevel() >= 30) {
+                cm.sendOk("This training ground is available only for those under level 30.");
                 cm.dispose();
                 return;
         }

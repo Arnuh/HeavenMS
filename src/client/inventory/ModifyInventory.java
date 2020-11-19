@@ -37,7 +37,7 @@ public class ModifyInventory {
         return oldPos;
     }
     
-    public final short getQuantity() {
+    public final int getQuantity() {
         return item.getQuantity();
     }
 

@@ -312,7 +312,7 @@ public class DueyProcessor {
         }
     }
     
-    private static int addPackageItemFromInventory(int packageId, MapleClient c, byte invTypeId, short itemPos, short amount) {
+    private static int addPackageItemFromInventory(int packageId, MapleClient c, byte invTypeId, short itemPos, int amount) {
         if (invTypeId > 0) {
             MapleItemInformationProvider ii = MapleItemInformationProvider.getInstance();
             
@@ -353,7 +353,7 @@ public class DueyProcessor {
         return 0;
     }
     
-    public static void dueySendItem(MapleClient c, byte invTypeId, short itemPos, short amount, int sendMesos, String sendMessage, String recipient, boolean quick) {
+    public static void dueySendItem(MapleClient c, byte invTypeId, short itemPos, int amount, int sendMesos, String sendMessage, String recipient, boolean quick) {
         if (c.tryacquireClient()) {
             try {
                 int fee = MapleTrade.getFee(sendMesos);

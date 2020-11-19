@@ -189,10 +189,10 @@ public final class PacketProcessor {
             registerHandler(RecvOpcode.BBS_OPERATION, new BBSOperationHandler());
             registerHandler(RecvOpcode.SKILL_EFFECT, new SkillEffectHandler());
             registerHandler(RecvOpcode.MESSENGER, new MessengerHandler());
-            registerHandler(RecvOpcode.NPC_ACTION, new NPCAnimationHandler());
+            //registerHandler(RecvOpcode.NPC_ACTION, new NPCAnimationHandler());
             registerHandler(RecvOpcode.CHECK_CASH, new TouchingCashShopHandler());
             registerHandler(RecvOpcode.CASHSHOP_OPERATION, new CashOperationHandler());
-            registerHandler(RecvOpcode.COUPON_CODE, new CouponCodeHandler());
+            //registerHandler(RecvOpcode.COUPON_CODE, new CouponCodeHandler());
             registerHandler(RecvOpcode.SPAWN_PET, new SpawnPetHandler());
             registerHandler(RecvOpcode.MOVE_PET, new MovePetHandler());
             registerHandler(RecvOpcode.PET_CHAT, new PetChatHandler());

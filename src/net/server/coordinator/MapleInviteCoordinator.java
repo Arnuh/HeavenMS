@@ -47,7 +47,8 @@ public class MapleInviteCoordinator {
         TRADE,
         PARTY,
         GUILD,
-        ALLIANCE;
+        ALLIANCE,
+        RAID;
         
         final ConcurrentHashMap<Integer, Object> invites;
         final ConcurrentHashMap<Integer, MapleCharacter> inviteFrom;

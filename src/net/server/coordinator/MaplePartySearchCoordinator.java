@@ -396,7 +396,7 @@ public class MaplePartySearchCoordinator {
         
         for (MapleCharacter leader : searchedLeaders) {
             MapleParty party = leader.getParty();
-            if (party != null && party.getMembers().size() < 6) {
+            if (party != null && party.getMembers().size() < ServerConstants.PartySize) {
                 addQueueLeader(leader);
             } else {
                 if (leader.isLoggedinWorld()) leader.dropMessage(5, "Your Party Search token session has finished as your party reached full capacity.");

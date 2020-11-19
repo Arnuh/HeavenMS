@@ -512,34 +512,13 @@ public class CashShop {
     }
 
     public void save(Connection con) throws SQLException {
-        PreparedStatement ps = con.prepareStatement("UPDATE `accounts` SET `nxCredit` = ?, `maplePoint` = ?, `nxPrepaid` = ? WHERE `id` = ?");
-        ps.setInt(1, nxCredit);
-        ps.setInt(2, maplePoint);
-        ps.setInt(3, nxPrepaid);
-        ps.setInt(4, accountId);
-        ps.executeUpdate();
-        ps.close();
-        List<Pair<Item, MapleInventoryType>> itemsWithType = new ArrayList<>();
-
-        List<Item> inv = getInventory();
-        for (Item item : inv) {
-            itemsWithType.add(new Pair<>(item, item.getInventoryType()));
-        }
-
-        factory.saveItems(itemsWithType, accountId, con);
-        ps = con.prepareStatement("DELETE FROM `wishlists` WHERE `charid` = ?");
-        ps.setInt(1, characterId);
-        ps.executeUpdate();
-        ps.close();
-        ps = con.prepareStatement("INSERT INTO `wishlists` VALUES (DEFAULT, ?, ?)");
-        ps.setInt(1, characterId);
-
-        for (int sn : wishList) {
-            ps.setInt(2, sn);
+        try (PreparedStatement ps = con.prepareStatement("UPDATE `accounts` SET `nxCredit` = ?, `maplePoint` = ?, `nxPrepaid` = ? WHERE `id` = ?")) {
+            ps.setInt(1, nxCredit);
+            ps.setInt(2, maplePoint);
+            ps.setInt(3, nxPrepaid);
+            ps.setInt(4, accountId);
             ps.executeUpdate();
         }
-
-        ps.close();
     }
     
     private Item getCashShopItemByItemid(int itemid) {

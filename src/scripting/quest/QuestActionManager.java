@@ -34,12 +34,13 @@ import server.quest.actions.MesoAction;
  */
 public class QuestActionManager extends NPCConversationManager {
     private boolean start; // this is if the script in question is start or end
-    private int quest;
+    private int quest, npc;
 
     public QuestActionManager(MapleClient c, int quest, int npc, boolean start) {
         super(c, npc, null);
         this.quest = quest;
         this.start = start;
+        this.npc = npc;
     }
 
     public int getQuest() {
@@ -56,11 +57,11 @@ public class QuestActionManager extends NPCConversationManager {
     }
 
     public boolean forceStartQuest() {
-        return forceStartQuest(quest);
+        return forceStartQuest(this.quest, this.npc);
     }
 
     public boolean forceCompleteQuest() {
-        return forceCompleteQuest(quest);
+        return forceCompleteQuest(this.quest, this.npc);
     }
     
     // For compatibility with some older scripts...
@@ -87,4 +88,6 @@ public class QuestActionManager extends NPCConversationManager {
         MapleQuest q = MapleQuest.getInstance(quest);
         return MapleItemInformationProvider.getInstance().getName(q.getMedalRequirement());
     }
+    
+    
 }

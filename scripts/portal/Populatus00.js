@@ -1,56 +1,73 @@
 /*
-	This file is part of the OdinMS Maple Story Server
-    Copyright (C) 2008 Patrick Huy <patrick.huy@frz.cc>
-		       Matthias Butz <matze@odinms.de>
-		       Jan Christian Meyer <vimes@odinms.de>
-
-    This program is free software: you can redistribute it and/or modify
-    it under the terms of the GNU Affero General Public License as
-    published by the Free Software Foundation version 3 as published by
-    the Free Software Foundation. You may not use, modify or distribute
-    this program under any other version of the GNU Affero General Public
-    License.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU Affero General Public License for more details.
-
-    You should have received a copy of the GNU Affero General Public License
-    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ This file is part of the OdinMS Maple Story Server
+ Copyright (C) 2008 Patrick Huy <patrick.huy@frz.cc>
+ Matthias Butz <matze@odinms.de>
+ Jan Christian Meyer <vimes@odinms.de>
+ 
+ This program is free software: you can redistribute it and/or modify
+ it under the terms of the GNU Affero General Public License as
+ published by the Free Software Foundation version 3 as published by
+ the Free Software Foundation. You may not use, modify or distribute
+ this program under any other version of the GNU Affero General Public
+ License.
+ 
+ This program is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ GNU Affero General Public License for more details.
+ 
+ You should have received a copy of the GNU Affero General Public License
+ along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
 /* @author RonanLana */
 
+var level = 120;
+var minparty = 1;
+var maxparty = 6;
+var minraid = 1;
+var maxraid = 40;
+
 function enter(pi) {
-    if (!((pi.isQuestStarted(6361) && pi.haveItem(4031870, 1)) || (pi.isQuestCompleted(6361) && !pi.isQuestCompleted(6363)))) {
-        var em = pi.getEventManager("PapulatusBattle");
-
-        if (pi.getParty() == null) {
-            pi.playerMessage(5, "You are currently not in a party, create one to attempt the boss.");
-            return false;
-        } else if(!pi.isLeader()) {
-            pi.playerMessage(5, "Your party leader must enter the portal to start the battle.");
-            return false;
-        } else {
-            var eli = em.getEligibleParty(pi.getParty());
-            if(eli.size() > 0) {
-                if(!em.startInstance(pi.getParty(), pi.getPlayer().getMap(), 1)) {
-                    pi.playerMessage(5, "The battle against the boss has already begun, so you may not enter this place yet.");
-                    return false;
+    var em = pi.getEventManager("PapulatusBattle");
+    if (em != null) {
+        if (pi.getPlayer().isGroup()) {
+            if (pi.getPlayer().isLeader()) {
+                var cost = 5 * pi.getPlayer().getChannel();
+                if (pi.getPlayer().getStamina() >= cost) {
+                    var eli;
+                    if (pi.getPlayer().getParty() != null) {
+                        eli = em.getEligiblePartySrc(pi.getParty(), pi.getPlayer().getMapId(), level, 255, minparty, maxparty);
+                    } else if (pi.getPlayer().getRaid() != null) {
+                        eli = em.getEligibleRaidSrc(pi.getPlayer().getRaid(), pi.getPlayer().getMapId(), level, 255, minraid, maxraid);
+                    } else {
+                        pi.playerMessage(5, "Event has encountered an error");
+                        return false;
+                    }
+                    if (eli.size() > 0) {
+                        if (!em.startPlayerInstance(pi.getPlayer(), 1)) {
+                            pi.playerMessage(5, "Someone is already attempting the PQ or your instance is currently being reseted. Try again in few seconds.");
+                        } else {
+                            pi.getPlayer().removeStamina(cost);
+                            pi.playPortalSound();
+                            return true;
+                        }
+                    } else {
+                        pi.playerMessage(5, "You cannot start this party quest yet, because either your party is not in the range size, some of your party members are not eligible to attempt it or they are not in this map. Minimum requirements are: Level " + level + ", 1+ Raid members.");
+                    }
+                } else {
+                    pi.playerMessage(5, "The leader of the party must have at least "+cost+" stamina or more to enter.");
                 }
+            } else {
+                pi.playerMessage(5, "The leader of the party must be the to talk to me about joining the event.");
             }
-            else {  //this should never appear
-                pi.playerMessage(5, "You cannot start this battle yet, because either your party is not in the range size, some of your party members are not eligible to attempt it or they are not in this map. If you're having trouble finding party members, try Party Search.");
-                return false;
-            }
-
-            pi.playPortalSound();
-            return true;
+        } else {
+            pi.playerMessage(5, "Event is Party/Raid Mode. Requirements:");
+            pi.playerMessage(5, "Party [minlvl=" + level + ", minplayers=" + minparty + ", maxplayers=" + maxparty + "]");
+            pi.playerMessage(5, "Raid [minlvl=" + level + ", minplayers=" + minraid + ", maxplayers=" + maxraid + "]");
         }
     } else {
-        pi.playPortalSound();
-        pi.warp(922020300);
-        return true;
+        pi.playerMessage(5, "Event has already started, Please wait.");
     }
+    return false;
 }

@@ -139,7 +139,7 @@ function insidePqAction(mode, type, selection) {
                         }
 
                         mapobj.allowSummonState(true);
-                        var snowman = MapleLifeFactory.getMonster(9400317 + (5 * difficulty));
+                        var snowman = MapleLifeFactory.getMonster(9400317 + (5 * difficulty), cm.getChannel());
                         mapobj.spawnMonsterOnGroundBelow(snowman, new java.awt.Point(-180, 15));
                         eim.setIntProperty("snowmanLevel", 1);
                         eim.dropMessage(5, "The snowman appeared on the field! Protect it using all means necessary!");
@@ -157,7 +157,7 @@ function insidePqAction(mode, type, selection) {
                         mapobj.broadcastStringMessage(5, "As the snowman grows to it's prime, the Scrooge appears!");
                         eim.getEm().getIv().invokeFunction("snowmanHeal", eim);
 
-                        var boss = MapleLifeFactory.getMonster(9400318 + difficulty);
+                        var boss = MapleLifeFactory.getMonster(9400318 + difficulty, cm.getChannel());
                         mapobj.spawnMonsterOnGroundBelow(boss, new java.awt.Point(-180, 15));
                         eim.setProperty("spawnedBoss", "true");
 

@@ -47,7 +47,7 @@ function start() {
     } else {
         if (cm.getJobId() == 0) {
             actionx["1stJob"] = true;
-            cm.sendNext("Want to be a #rmagician#k? There are some standards to meet. because we can't just accept EVERYONE in... #bYour level should be at least 8#k, with getting " + cm.getFirstJobStatRequirement(jobType) + " as your top priority. Let's see.");   // thanks Vcoc for noticing a need to state and check requirements on first job adv starting message
+            cm.sendNext("Want to be a #rmagician#k? There are some standards to meet. because we can't just accept EVERYONE in... #bYour level should be at least 8.#k Let's see.");   // thanks Vcoc for noticing a need to state and check requirements on first job adv starting message
         } else if (cm.getLevel() >= 30 && cm.getJobId() == 200) {
             actionx["2ndJob"] = true;
             if (cm.haveItem(4031012))
@@ -188,7 +188,7 @@ function action(mode, type, selection) {
         } else if (status == 3){
             if (cm.haveItem(4031012))
                 cm.gainItem(4031012, -1);
-            cm.completeQuest(100008);
+            //cm.completeQuest(100008);
             cm.sendNext("Alright, you're the " + (job == 210 ? "#bWizard (Fire / Poison)#k" : job == 220 ? "#bWizard (Ice / Lighting)#k" : "#bCleric#k") + " from here on out. Mages and wizards are the intelligent bunch with incredible magical prowess, able to pierce the mind and the psychological structure of the monsters with ease... please train yourself each and everyday. I'll help you become even stronger than you already are.");
             if (cm.getJobId() != job)
                 cm.changeJobById(job);

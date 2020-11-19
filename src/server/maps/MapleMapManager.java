@@ -1,25 +1,26 @@
 /*
-    This file is part of the HeavenMS MapleStory Server
-    Copyleft (L) 2016 - 2018 RonanLana
+ This file is part of the HeavenMS MapleStory Server
+ Copyleft (L) 2016 - 2018 RonanLana
 
-    This program is free software: you can redistribute it and/or modify
-    it under the terms of the GNU Affero General Public License as
-    published by the Free Software Foundation version 3 as published by
-    the Free Software Foundation. You may not use, modify or distribute
-    this program under any other version of the GNU Affero General Public
-    License.
+ This program is free software: you can redistribute it and/or modify
+ it under the terms of the GNU Affero General Public License as
+ published by the Free Software Foundation version 3 as published by
+ the Free Software Foundation. You may not use, modify or distribute
+ this program under any other version of the GNU Affero General Public
+ License.
 
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU Affero General Public License for more details.
+ This program is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ GNU Affero General Public License for more details.
 
-    You should have received a copy of the GNU Affero General Public License
-    along with this program.  If not, see <http://www.gnu.org/licenses/>.
-*/
+ You should have received a copy of the GNU Affero General Public License
+ along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
 package server.maps;
 
 import constants.ServerConstants;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ScheduledFuture;
@@ -35,11 +36,11 @@ public class MapleMapManager {
 
     private int channel, world;
     private EventInstanceManager event;
-    
+
     private Map<Integer, MapleMap> maps = new HashMap<>();
-    
+
     private ScheduledFuture<?> updateTask;
-    
+
     private ReadLock mapsRLock;
     private WriteLock mapsWLock;
 
@@ -51,13 +52,6 @@ public class MapleMapManager {
         ReentrantReadWriteLock rrwl = new MonitoredReentrantReadWriteLock(MonitoredLockType.MAP_MANAGER);
         this.mapsRLock = rrwl.readLock();
         this.mapsWLock = rrwl.writeLock();
-        
-        updateTask = TimerManager.getInstance().register(new Runnable() {
-            @Override
-            public void run() {
-                updateMaps();
-            }
-        }, ServerConstants.RESPAWN_INTERVAL);
     }
 
     public MapleMap resetMap(int mapid) {
@@ -113,7 +107,7 @@ public class MapleMapManager {
 
         return (map != null) ? map : loadMapFromWz(mapid, true);
     }
-    
+
     public MapleMap getDisposableMap(int mapid) {
         return loadMapFromWz(mapid, false);
     }
@@ -135,20 +129,12 @@ public class MapleMapManager {
             mapsRLock.unlock();
         }
     }
-    
-    private void updateMaps() {
-        for (MapleMap map : getMaps().values()) {
-            map.respawn();
-            map.mobMpRecovery();
-        }
+
+    public Collection<MapleMap> getAllMaps() {
+        return maps.values();
     }
-    
+
     public void dispose() {
-        if (updateTask != null) {
-            updateTask.cancel(false);
-            updateTask = null;
-        }
-        
         for (MapleMap map : getMaps().values()) {
             map.dispose();
         }

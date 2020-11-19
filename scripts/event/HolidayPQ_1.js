@@ -306,7 +306,7 @@ function snowmanEvolve(eim, curLevel) {
         eim.setIntProperty("snowmanLevel", curLevel + 2);   // increment by 2 to decrement by 1 on friendlyKilled
         mapobj.killMonster(snowman, null, false, 2);
         
-        var snowman = MapleLifeFactory.getMonster(9400317 + (5 * difficulty) + curLevel);
+        var snowman = MapleLifeFactory.getMonster(9400317 + (5 * difficulty) + curLevel, eim.getChannel());
         mapobj.spawnMonsterOnGroundBelow(snowman, new java.awt.Point(-180, 15));
         
         if(curLevel >= 4) {

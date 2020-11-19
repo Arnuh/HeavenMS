@@ -94,7 +94,7 @@ public class ViewAllCharSelectedWithPicHandler extends AbstractMaplePacketHandle
             server.setCharacteridInTransition(session, charId);
             
             try {
-                c.announce(MaplePacketCreator.getServerIP(InetAddress.getByName(socket[0]), Integer.parseInt(socket[1]), charId));
+                c.announce(MaplePacketCreator.getServerIP(c, InetAddress.getByName(socket[0]), Integer.parseInt(socket[1]), charId));
             } catch (UnknownHostException e) {
                 e.printStackTrace();
             }

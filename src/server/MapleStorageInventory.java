@@ -220,7 +220,7 @@ public class MapleStorageInventory {
         return source.getOwner().equals(target.getOwner());
     }
     
-    private void move(short sSlot, short dSlot, short slotMax) {
+    private void move(short sSlot, short dSlot, int slotMax) {
         Item source = (Item) inventory.get(sSlot);
         Item target = (Item) inventory.get(dSlot);
         if (source == null) {
@@ -234,11 +234,11 @@ public class MapleStorageInventory {
             if (isEquipOrCash(source)) {
                 swap(target, source);
             } else if (source.getQuantity() + target.getQuantity() > slotMax) {
-                short rest = (short) ((source.getQuantity() + target.getQuantity()) - slotMax);
+                int rest = ((source.getQuantity() + target.getQuantity()) - slotMax);
                 source.setQuantity(rest);
                 target.setQuantity(slotMax);
             } else {
-                target.setQuantity((short) (source.getQuantity() + target.getQuantity()));
+                target.setQuantity((source.getQuantity() + target.getQuantity()));
                 inventory.remove(sSlot);
             }
         } else {
@@ -258,7 +258,7 @@ public class MapleStorageInventory {
         if (source == null) {
             return;
         }
-        short slotMax = MapleItemInformationProvider.getInstance().getSlotMax(c, source.getItemId());
+        int slotMax = MapleItemInformationProvider.getInstance().getSlotMax(c, source.getItemId());
         this.move(src, dst, slotMax);
     }
 

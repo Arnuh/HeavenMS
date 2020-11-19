@@ -75,9 +75,9 @@ public class AssignAPProcessor {
                 byte opt = slea.readByte();     // useful for pirate autoassigning
 
                 int str = 0, dex = 0, luk = 0, int_ = 0;
-                List<Short> eqpStrList = new ArrayList<>();
-                List<Short> eqpDexList = new ArrayList<>();
-                List<Short> eqpLukList = new ArrayList<>();
+                List<Integer> eqpStrList = new ArrayList<>();
+                List<Integer> eqpDexList = new ArrayList<>();
+                List<Integer> eqpLukList = new ArrayList<>();
 
                 Equip nEquip;
 
@@ -122,7 +122,7 @@ public class AssignAPProcessor {
                 switch(stance) {
                     case MAGICIAN:
                         CAP = 165;
-                        scStat = (chr.getLevel() + 3) - (chr.getLuk() + luk - eqpLuk);
+                        scStat = (chr.getTotalLevel() + 3) - (chr.getLuk() + luk - eqpLuk);
                         if(scStat < 0) scStat = 0;
                         scStat = Math.min(scStat, tempAp);
 
@@ -148,7 +148,7 @@ public class AssignAPProcessor {
 
                     case BOWMAN:
                         CAP = 125;
-                        scStat = (chr.getLevel() + 5) - (chr.getStr() + str - eqpStr);
+                        scStat = (chr.getTotalLevel() + 5) - (chr.getStr() + str - eqpStr);
                         if(scStat < 0) scStat = 0;
                         scStat = Math.min(scStat, tempAp);
 
@@ -174,7 +174,7 @@ public class AssignAPProcessor {
                     case GUNSLINGER:
                     case CROSSBOWMAN:
                         CAP = 120;
-                        scStat = chr.getLevel() - (chr.getStr() + str - eqpStr);
+                        scStat = chr.getTotalLevel() - (chr.getStr() + str - eqpStr);
                         if(scStat < 0) scStat = 0;
                         scStat = Math.min(scStat, tempAp);
 
@@ -202,7 +202,7 @@ public class AssignAPProcessor {
 
                         scStat = 0;
                         if(chr.getDex() < 80) {
-                            scStat = (2 * chr.getLevel()) - (chr.getDex() + dex - eqpDex);
+                            scStat = (2 * chr.getTotalLevel()) - (chr.getDex() + dex - eqpDex);
                             if(scStat < 0) scStat = 0;
 
                             scStat = Math.min(80 - chr.getDex(), scStat);
@@ -210,16 +210,16 @@ public class AssignAPProcessor {
                             tempAp -= scStat;
                         }
 
-                        temp = (chr.getLevel() + 40) - Math.max(80, scStat + chr.getDex() + dex - eqpDex);
+                        temp = (chr.getTotalLevel() + 40) - Math.max(80, scStat + chr.getDex() + dex - eqpDex);
                         if(temp < 0) temp = 0;
                         temp = Math.min(tempAp, temp);
                         scStat += temp;
                         tempAp -= temp;
 
                         // thieves will upgrade STR as well only if a level-based threshold is reached.
-                        if(chr.getStr() >= Math.max(13, (int)(0.4 * chr.getLevel()))) {
+                        if(chr.getStr() >= Math.max(13, (int)(0.4 * chr.getTotalLevel()))) {
                             if(chr.getStr() < 50) {
-                                trStat = (chr.getLevel() - 10) - (chr.getStr() + str - eqpStr);
+                                trStat = (chr.getTotalLevel() - 10) - (chr.getStr() + str - eqpStr);
                                 if(trStat < 0) trStat = 0;
 
                                 trStat = Math.min(50 - chr.getStr(), trStat);
@@ -227,7 +227,7 @@ public class AssignAPProcessor {
                                 tempAp -= trStat;
                             }
 
-                            temp = (20 + (chr.getLevel() / 2)) - Math.max(50, trStat + chr.getStr() + str - eqpStr);
+                            temp = (20 + (chr.getTotalLevel() / 2)) - Math.max(50, trStat + chr.getStr() + str - eqpStr);
                             if(temp < 0) temp = 0;
                             temp = Math.min(tempAp, temp);
                             trStat += temp;
@@ -267,7 +267,7 @@ public class AssignAPProcessor {
                                 highDex = true;
                             }
                         } else {
-                            if (chr.getDex() >= chr.getLevel() + 42) {
+                            if (chr.getDex() >= chr.getTotalLevel() + 42) {
                                 highDex = true;
                             }
                         }
@@ -276,7 +276,7 @@ public class AssignAPProcessor {
                         if(!highDex) {
                             scStat = 0;
                             if(chr.getDex() < 80) {
-                                scStat = (2 * chr.getLevel()) - (chr.getDex() + dex - eqpDex);
+                                scStat = (2 * chr.getTotalLevel()) - (chr.getDex() + dex - eqpDex);
                                 if(scStat < 0) scStat = 0;
 
                                 scStat = Math.min(80 - chr.getDex(), scStat);
@@ -284,7 +284,7 @@ public class AssignAPProcessor {
                                 tempAp -= scStat;
                             }
 
-                            temp = (chr.getLevel() + 40) - Math.max(80, scStat + chr.getDex() + dex - eqpDex);
+                            temp = (chr.getTotalLevel() + 40) - Math.max(80, scStat + chr.getDex() + dex - eqpDex);
                             if(temp < 0) temp = 0;
                             temp = Math.min(tempAp, temp);
                             scStat += temp;
@@ -292,7 +292,7 @@ public class AssignAPProcessor {
                         } else {
                             scStat = 0;
                             if(chr.getDex() < 96) {
-                                scStat = (int)(2.4 * chr.getLevel()) - (chr.getDex() + dex - eqpDex);
+                                scStat = (int)(2.4 * chr.getTotalLevel()) - (chr.getDex() + dex - eqpDex);
                                 if(scStat < 0) scStat = 0;
 
                                 scStat = Math.min(96 - chr.getDex(), scStat);
@@ -300,7 +300,7 @@ public class AssignAPProcessor {
                                 tempAp -= scStat;
                             }
 
-                            temp = 96 + (int)(1.2 * (chr.getLevel() - 40)) - Math.max(96, scStat + chr.getDex() + dex - eqpDex);
+                            temp = 96 + (int)(1.2 * (chr.getTotalLevel() - 40)) - Math.max(96, scStat + chr.getDex() + dex - eqpDex);
                             if(temp < 0) temp = 0;
                             temp = Math.min(tempAp, temp);
                             scStat += temp;
@@ -376,7 +376,7 @@ public class AssignAPProcessor {
         }
     }
     
-    private static int getNthHighestStat(List<Short> statList, short rank) {    // ranks from 0
+    private static int getNthHighestStat(List<Integer> statList, short rank) {    // ranks from 0
         return(statList.size() <= rank ? 0 : statList.get(rank));
     }
     
@@ -534,7 +534,7 @@ public class AssignAPProcessor {
                     }
 
                     int mp = player.getMaxMp();
-                    int level = player.getLevel();
+                    int level = player.getTotalLevel();
                     MapleJob job = player.getJob();
 
                     boolean canWash = true;

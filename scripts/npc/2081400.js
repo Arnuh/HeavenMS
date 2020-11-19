@@ -46,7 +46,7 @@ function action(mode, type, selection) {
                         status--;
     
                 if(status == 0) {
-                        if(cm.getLevel() < 120 || Math.floor(cm.getJobId() / 100) != 4) {
+                        if(cm.getLevel() < 120 || Math.round(cm.getJobId() / 100) != 4) {
                                 cm.sendOk("Please don't bother me right now, I am trying to concentrate.");
                                 cm.dispose();
                         } else if (!cm.isQuestCompleted(6934)) {
@@ -60,33 +60,13 @@ function action(mode, type, selection) {
                         }
                 } else if(status == 1) {
                         if (mode >= 1 && cm.getJobId() % 100 % 10 != 2) {
-                                if (cm.canHold(2280003, 1)) {
-                                        cm.changeJobById(cm.getJobId() + 1);
-                                        if(cm.getJobId() == 412) {
-                                                cm.teachSkill(4120002, 0, 10, -1);
-                                                cm.teachSkill(4120005, 0, 10, -1);
-                                                cm.teachSkill(4121006, 0, 10, -1);
-                                        } else if(cm.getJobId() == 422) {
-                                                cm.teachSkill(4220002, 0, 10, -1);
-                                                cm.teachSkill(4220005, 0, 10, -1);
-                                                cm.teachSkill(4221007, 0, 10, -1);
-                                        }
-                                        cm.gainItem(2280003, 1);
-                                } else {
-                                        cm.sendOk("Please have one slot available on #bUSE#k inventory to receive a skill book.");
-                                }
+							if (cm.getPlayer().getRemainingSp() == 0) {
+                                cm.changeJobById(cm.getJobId() + 1);
+							} else {
+								cm.sendOk("Please, use all your SP before continuing.");
+								cm.dispose();
+							}
                         } else if(mode >= 1 && cm.getJobId() % 100 % 10 == 2) {
-                                if(cm.getJobId() == 412) {
-                                        if(cm.getPlayer().getSkillLevel(4121008) == 0)
-                                                cm.teachSkill(4121008 , 0, 10, -1);
-                                        if(cm.getPlayer().getSkillLevel(4121004) == 0)
-                                                cm.teachSkill(4121004 , 0, 10, -1);
-                                } else if(cm.getJobId() == 422) {
-                                        if(cm.getPlayer().getSkillLevel(4221004) == 0)
-                                                cm.teachSkill(4221004 , 0, 10, -1);
-                                        if(cm.getPlayer().getSkillLevel(4221001) == 0)
-                                                cm.teachSkill(4221001 , 0, 10, -1);
-                                }
                                 cm.sendOk("It is done. Leave me now.");
                         }
                         

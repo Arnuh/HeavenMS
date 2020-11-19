@@ -83,6 +83,7 @@ public class ProItemCommand extends Command {
         equip.setMdef(stat);
         equip.setHp(stat);
         equip.setMp(stat);
+      
 
         byte flag = equip.getFlag();
         flag |= ItemConstants.UNTRADEABLE;

@@ -163,7 +163,7 @@ public class FilePrinter {
     }
 
     public static void print(final String name, final String s, boolean line) {
-    	System.out.println("Log: " + name);
+    	//System.out.println("Log: " + name);
     	System.out.println(s);
         System.out.println();
         FileOutputStream out = null;

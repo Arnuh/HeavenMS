@@ -56,7 +56,7 @@ public final class AdminCommandHandler extends AbstractMaplePacketHandler {
                 for (int z = 0; z < toSpawn.length; z++) {
                     int[] toSpawnChild = toSpawn[z];
                     if (Randomizer.nextInt(100) < toSpawnChild[1]) {
-                        c.getPlayer().getMap().spawnMonsterOnGroundBelow(MapleLifeFactory.getMonster(toSpawnChild[0]), c.getPlayer().getPosition());
+                        c.getPlayer().getMap().spawnMonsterOnGroundBelow(MapleLifeFactory.getMonster(toSpawnChild[0], c.getPlayer().getClient().getChannel()), c.getPlayer().getPosition());
                     }
                 }
                 c.announce(MaplePacketCreator.enableActions());
@@ -142,7 +142,7 @@ public final class AdminCommandHandler extends AbstractMaplePacketHandler {
                 int mobId = slea.readInt();
                 int quantity = slea.readInt();
                 for (int i = 0; i < quantity; i++) {
-                    c.getPlayer().getMap().spawnMonsterOnGroundBelow(MapleLifeFactory.getMonster(mobId), c.getPlayer().getPosition());
+                    c.getPlayer().getMap().spawnMonsterOnGroundBelow(MapleLifeFactory.getMonster(mobId, c.getPlayer().getClient().getChannel()), c.getPlayer().getPosition());
                 }
                 break;
             case 0x18: // Maple & Mobhp
@@ -161,7 +161,7 @@ public final class AdminCommandHandler extends AbstractMaplePacketHandler {
                 String message = slea.readMapleAsciiString();
                 target = c.getChannelServer().getPlayerStorage().getCharacterByName(victim);
                 if (target != null) {
-                    target.getClient().announce(MaplePacketCreator.serverNotice(1, message));
+                    target.announce(MaplePacketCreator.serverNotice(1, message));
                     c.announce(MaplePacketCreator.getGMEffect(0x1E, (byte) 1));
                 } else {
                     c.announce(MaplePacketCreator.getGMEffect(0x1E, (byte) 0));

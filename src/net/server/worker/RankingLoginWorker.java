@@ -36,51 +36,55 @@ import net.server.Server;
  * @author Ronan
  */
 public class RankingLoginWorker implements Runnable {
-    private Connection con;
     private long lastUpdate = System.currentTimeMillis();
     
     private void resetMoveRank(boolean job) throws SQLException {
-        String query = "UPDATE characters SET " + (job == true ? "jobRankMove = 0" : "rankMove = 0");
-        PreparedStatement reset = con.prepareStatement(query);
-        reset.executeUpdate();
+        try (Connection con = DatabaseConnection.getConnection()) {
+            String query = "UPDATE characters SET " + (job == true ? "jobRankMove = 0" : "rankMove = 0");
+            PreparedStatement reset = con.prepareStatement(query);
+            reset.executeUpdate();
+        }
     }
 
     private void updateRanking(int job, int world) throws SQLException {
-        String sqlCharSelect = "SELECT c.id, " + (job != -1 ? "c.jobRank, c.jobRankMove" : "c.rank, c.rankMove") + ", a.lastlogin AS lastlogin, a.loggedin FROM characters AS c LEFT JOIN accounts AS a ON c.accountid = a.id WHERE c.gm < 2 AND c.world = ? ";
-        if (job != -1) {
-            sqlCharSelect += "AND c.job DIV 100 = ? ";
-        }
-        sqlCharSelect += "ORDER BY c.level DESC , c.exp DESC , c.lastExpGainTime ASC, c.fame DESC , c.meso DESC";
-        
-        PreparedStatement charSelect = con.prepareStatement(sqlCharSelect);
-        charSelect.setInt(1, world);
-        if (job != -1) {
-            charSelect.setInt(2, job);
-        }
-        ResultSet rs = charSelect.executeQuery();
-        PreparedStatement ps = con.prepareStatement("UPDATE characters SET " + (job != -1 ? "jobRank = ?, jobRankMove = ? " : "rank = ?, rankMove = ? ") + "WHERE id = ?");
-        int rank = 0;
-        
-        while (rs.next()) {
-            int rankMove = 0;
-            rank++;
-            if (rs.getLong("lastlogin") < lastUpdate || rs.getInt("loggedin") > 0) {
-                rankMove = rs.getInt((job != -1 ? "jobRankMove" : "rankMove"));
+        try (Connection con = DatabaseConnection.getConnection()) {
+            String sqlCharSelect = "SELECT c.id, " + (job != -1 ? "c.jobRank, c.jobRankMove" : "c.rank, c.rankMove") + ", a.lastlogin AS lastlogin, a.loggedin FROM characters AS c LEFT JOIN accounts AS a ON c.accountid = a.id WHERE c.gm < 2 AND c.world = ? ";
+            if (job != -1) {
+                sqlCharSelect += "AND c.job DIV 100 = ? ";
             }
-            rankMove += rs.getInt((job != -1 ? "jobRank" : "rank")) - rank;
-            ps.setInt(1, rank);
-            ps.setInt(2, rankMove);
-            ps.setInt(3, rs.getInt("id"));
-            ps.executeUpdate();
+            sqlCharSelect += "ORDER BY c.totallevel DESC , c.exp DESC , c.lastExpGainTime ASC, c.fame DESC , c.meso DESC";
+            
+            PreparedStatement charSelect = con.prepareStatement(sqlCharSelect);
+            charSelect.setInt(1, world);
+            if (job != -1) {
+                charSelect.setInt(2, job);
+            }
+            ResultSet rs = charSelect.executeQuery();
+            PreparedStatement ps = con.prepareStatement("UPDATE characters SET " + (job != -1 ? "jobRank = ?, jobRankMove = ? " : "rank = ?, rankMove = ? ") + "WHERE id = ?");
+            int rank = 0;
+            
+            while (rs.next()) {
+                int rankMove = 0;
+                rank++;
+                if (rs.getLong("lastlogin") < lastUpdate || rs.getInt("loggedin") > 0) {
+                    rankMove = rs.getInt((job != -1 ? "jobRankMove" : "rankMove"));
+                }
+                rankMove += rs.getInt((job != -1 ? "jobRank" : "rank")) - rank;
+                ps.setInt(1, rank);
+                ps.setInt(2, rankMove);
+                ps.setInt(3, rs.getInt("id"));
+                ps.executeUpdate();
+            }
+            
+            rs.close();
+            charSelect.close();
+            ps.close();
         }
-        
-        rs.close();
-        charSelect.close();
-        ps.close();
     }
     
     @Override
     public void run() {
+        Connection con = null;
         try {
             con = DatabaseConnection.getConnection();
             con.setAutoCommit(false);

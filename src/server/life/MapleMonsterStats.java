@@ -1,28 +1,30 @@
 /*
-	This file is part of the OdinMS Maple Story Server
-    Copyright (C) 2008 Patrick Huy <patrick.huy@frz.cc>
-		       Matthias Butz <matze@odinms.de>
-		       Jan Christian Meyer <vimes@odinms.de>
+ This file is part of the OdinMS Maple Story Server
+ Copyright (C) 2008 Patrick Huy <patrick.huy@frz.cc>
+ Matthias Butz <matze@odinms.de>
+ Jan Christian Meyer <vimes@odinms.de>
 
-    This program is free software: you can redistribute it and/or modify
-    it under the terms of the GNU Affero General Public License as
-    published by the Free Software Foundation version 3 as published by
-    the Free Software Foundation. You may not use, modify or distribute
-    this program under any other version of the GNU Affero General Public
-    License.
+ This program is free software: you can redistribute it and/or modify
+ it under the terms of the GNU Affero General Public License as
+ published by the Free Software Foundation version 3 as published by
+ the Free Software Foundation. You may not use, modify or distribute
+ this program under any other version of the GNU Affero General Public
+ License.
 
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU Affero General Public License for more details.
+ This program is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ GNU Affero General Public License for more details.
 
-    You should have received a copy of the GNU Affero General Public License
-    along with this program.  If not, see <http://www.gnu.org/licenses/>.
-*/
+ You should have received a copy of the GNU Affero General Public License
+ along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
 package server.life;
 
+import client.MapleCharacter;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -37,9 +39,11 @@ import tools.Pair;
  * @author Frz
  */
 public class MapleMonsterStats {
-    public boolean changeable;
-    public int exp, hp, mp, level, PADamage, PDDamage, MADamage, MDDamage, dropPeriod, cp, buffToGive = -1, removeAfter;
-    public boolean boss, undead, ffaLoot, isExplosiveReward, firstAttack, removeOnMiss;
+
+    public boolean changeable, superboss = false, megaboss = false;
+    public int mp, level, PADamage, PDDamage, MADamage, MDDamage, dropPeriod, cp, buffToGive = -1, removeAfter, acc, eva, pushed, scale, attack, defense, power;
+    public long hp, exp;
+    public boolean boss, undead, ffaLoot, isExplosiveReward, firstAttack, removeOnMiss, mod;
     public String name;
     public Map<String, Integer> animationTimes = new HashMap<String, Integer>();
     public Map<Element, ElementalEffectiveness> resistance = new HashMap<Element, ElementalEffectiveness>();
@@ -52,6 +56,7 @@ public class MapleMonsterStats {
     public selfDestruction selfDestruction = null;
     public int fixedStance = 0;
     public boolean friendly;
+    public MapleCharacter owner = null;
 
     public void setChange(boolean change) {
         this.changeable = change;
@@ -60,20 +65,20 @@ public class MapleMonsterStats {
     public boolean isChangeable() {
         return changeable;
     }
-    
-    public int getExp() {
+
+    public long getExp() {
         return exp;
     }
 
-    public void setExp(int exp) {
+    public void setExp(long exp) {
         this.exp = exp;
     }
 
-    public int getHp() {
+    public long getHp() {
         return hp;
     }
 
-    public void setHp(int hp) {
+    public void setHp(long hp) {
         this.hp = hp;
     }
 
@@ -117,6 +122,22 @@ public class MapleMonsterStats {
         return boss;
     }
 
+    public void setSuperBoss(boolean boss) {
+        this.superboss = boss;
+    }
+
+    public boolean isSuperBoss() {
+        return superboss;
+    }
+
+    public void setMegaBoss(boolean boss) {
+        this.megaboss = boss;
+    }
+
+    public boolean isMegaBoss() {
+        return megaboss;
+    }
+
     public void setFfaLoot(boolean ffaLoot) {
         this.ffaLoot = ffaLoot;
     }
@@ -147,6 +168,10 @@ public class MapleMonsterStats {
 
     public void setRevives(List<Integer> revives) {
         this.revives = revives;
+    }
+
+    public void removeRevives(List<Integer> revives) {
+        revives.clear();
     }
 
     public void setUndead(boolean undead) {
@@ -198,7 +223,7 @@ public class MapleMonsterStats {
         for (int i = this.skills.size(); i < skills.size(); i++) {
             this.skills.add(null);
         }
-        
+
         for (int i = 0; i < skills.size(); i++) {
             this.skills.set(i, skills.get(i));
         }
@@ -283,7 +308,7 @@ public class MapleMonsterStats {
     public void setSelfDestruction(selfDestruction sd) {
         this.selfDestruction = sd;
     }
-    
+
     public void setExplosiveReward(boolean isExplosiveReward) {
         this.isExplosiveReward = isExplosiveReward;
     }
@@ -307,47 +332,111 @@ public class MapleMonsterStats {
     public Pair<Integer, Integer> getCool() {
         return cool;
     }
-    
+
     public int getPDDamage() {
         return PDDamage;
     }
-    
+
     public int getMADamage() {
         return MADamage;
     }
-    
+
     public int getMDDamage() {
         return MDDamage;
     }
-    
+
     public boolean isFriendly() {
         return friendly;
     }
-    
+
     public void setFriendly(boolean value) {
         this.friendly = value;
     }
-    
+
+    public final void setEva(final int eva) {
+        this.eva = eva;
+    }
+
+    public final int getEva() {
+        return eva;
+    }
+
+    public final void setAcc(final int acc) {
+        this.acc = acc;
+    }
+
+    public final int getAcc() {
+        return acc;
+    }
+
+    public void setPushed(int damage) {
+        this.pushed = damage;
+    }
+
+    public int getPushed() {
+        return pushed;
+    }
+
     public void setPDDamage(int PDDamage) {
         this.PDDamage = PDDamage;
     }
-    
+
     public void setMADamage(int MADamage) {
         this.MADamage = MADamage;
     }
-    
+
     public void setMDDamage(int MDDamage) {
         this.MDDamage = MDDamage;
-    } 
-    
+    }
+
     public int getFixedStance() {
         return this.fixedStance;
     }
-    
+
     public void setFixedStance(int stance) {
         this.fixedStance = stance;
     }
-    
+
+    public int getScale() {
+        return this.scale;
+    }
+
+    public void setScale(int value) {
+        this.scale = value;
+    }
+
+    public boolean getMod() {
+        return this.mod;
+    }
+
+    public void setMod(boolean value) {
+        this.mod = value;
+    }
+
+    public int getAtk() {
+        return attack;
+    }
+
+    public void setAtk(int atk) {
+        this.attack = atk;
+    }
+
+    public int getDef() {
+        return defense;
+    }
+
+    public void setDef(int def) {
+        this.defense = def;
+    }
+
+    public int getPower() {
+        return power;
+    }
+
+    public void setPower(int pwr) {
+        this.power = pwr;
+    }
+
     public MapleMonsterStats copy() {
         MapleMonsterStats copy = new MapleMonsterStats();
         try {
@@ -357,16 +446,17 @@ public class MapleMonsterStats {
             try {
                 Thread.sleep(10000);
             } catch (Exception ex) {
-                
+
             }
-            
+
         }
-        
+
         return copy;
     }
-    
+
     // FieldCopyUtil src: http://www.codesenior.com/en/tutorial/Java-Copy-Fields-From-One-Object-to-Another-Object-with-Reflection
     private static class FieldCopyUtil { // thanks to Codesenior dev team
+
         private static void setFields(Object from, Object to) {
             Field[] fields = from.getClass().getDeclaredFields();
             for (Field field : fields) {
@@ -382,5 +472,13 @@ public class MapleMonsterStats {
                 }
             }
         }
+    }
+
+    public void setOwner(MapleCharacter chr) {
+        this.owner = chr;
+    }
+
+    public MapleCharacter getOwner() {
+        return owner;
     }
 }

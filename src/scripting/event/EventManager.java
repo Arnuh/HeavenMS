@@ -1,24 +1,24 @@
 /*
-	This file is part of the OdinMS Maple Story Server
-    Copyright (C) 2008 Patrick Huy <patrick.huy@frz.cc>
-		       Matthias Butz <matze@odinms.de>
-		       Jan Christian Meyer <vimes@odinms.de>
+This file is part of the OdinMS Maple Story Server
+Copyright (C) 2008 Patrick Huy <patrick.huy@frz.cc>
+Matthias Butz <matze@odinms.de>
+Jan Christian Meyer <vimes@odinms.de>
 
-    This program is free software: you can redistribute it and/or modify
-    it under the terms of the GNU Affero General Public License as
-    published by the Free Software Foundation version 3 as published by
-    the Free Software Foundation. You may not use, modify or distribute
-    this program under any other version of the GNU Affero General Public
-    License.
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU Affero General Public License as
+published by the Free Software Foundation version 3 as published by
+the Free Software Foundation. You may not use, modify or distribute
+this program under any other version of the GNU Affero General Public
+License.
 
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU Affero General Public License for more details.
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU Affero General Public License for more details.
 
-    You should have received a copy of the GNU Affero General Public License
-    along with this program.  If not, see <http://www.gnu.org/licenses/>.
-*/
+You should have received a copy of the GNU Affero General Public License
+along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
 package scripting.event;
 
 import tools.exceptions.EventInstanceInProgressException;
@@ -61,7 +61,10 @@ import net.server.audit.LockCollector;
 import net.server.audit.locks.MonitoredLockType;
 import net.server.audit.locks.MonitoredReentrantLock;
 import net.server.audit.locks.factory.MonitoredReentrantLockFactory;
+import net.server.world.MapleRaid;
 import server.ThreadManager;
+import tools.MaplePacketCreator;
+import tools.Randomizer;
 //import jdk.nashorn.api.scripting.ScriptUtils;
 
 /**
@@ -70,6 +73,7 @@ import server.ThreadManager;
  * @author Ronan
  */
 public class EventManager {
+
     private Invocable iv;
     private Channel cserv;
     private World wserv;
@@ -87,46 +91,46 @@ public class EventManager {
     private MonitoredReentrantLock lobbyLock = MonitoredReentrantLockFactory.createLock(MonitoredLockType.EM_LOBBY);
     private MonitoredReentrantLock queueLock = MonitoredReentrantLockFactory.createLock(MonitoredLockType.EM_QUEUE);
     private MonitoredReentrantLock startLock = MonitoredReentrantLockFactory.createLock(MonitoredLockType.EM_START);
-    
     private Set<Integer> playerPermit = new HashSet<>();
     private Semaphore startSemaphore = new Semaphore(7);
-    
     private static final int maxLobbys = 8;     // an event manager holds up to this amount of concurrent lobbys
-    
+
     public EventManager(Channel cserv, Invocable iv, String name) {
         this.server = Server.getInstance();
         this.iv = iv;
         this.cserv = cserv;
         this.wserv = server.getWorld(cserv.getWorld());
         this.name = name;
-        
+
         this.openedLobbys = new ArrayList<>();
-        for(int i = 0; i < maxLobbys; i++) this.openedLobbys.add(false);
+        for (int i = 0; i < maxLobbys; i++) {
+            this.openedLobbys.add(false);
+        }
     }
 
     private boolean isDisposed() {
         return onLoadInstances <= -1000;
     }
-    
+
     public void cancel() {  // make sure to only call this when there are NO PLAYERS ONLINE to mess around with the event manager!
         ess.dispose();
-        
+
         try {
             iv.invokeFunction("cancelSchedule", (Object) null);
         } catch (ScriptException | NoSuchMethodException ex) {
             ex.printStackTrace();
         }
-        
+
         Collection<EventInstanceManager> eimList;
-        synchronized(instances) {
+        synchronized (instances) {
             eimList = getInstances();
             instances.clear();
         }
-        
-        for(EventInstanceManager eim : eimList) {
+
+        for (EventInstanceManager eim : eimList) {
             eim.dispose(true);
         }
-        
+
         List<EventInstanceManager> readyEims;
         queueLock.lock();
         try {
@@ -136,68 +140,71 @@ public class EventManager {
         } finally {
             queueLock.unlock();
         }
-        
-        for(EventInstanceManager eim : readyEims) {
+
+        for (EventInstanceManager eim : readyEims) {
             eim.dispose(true);
         }
-        
+
         props.clear();
         cserv = null;
         wserv = null;
         server = null;
         iv = null;
-        
+
         disposeLocks();
     }
-    
+
     private void disposeLocks() {
         LockCollector.getInstance().registerDisposeAction(new Runnable() {
+
             @Override
             public void run() {
                 emptyLocks();
             }
         });
     }
-    
+
     private void emptyLocks() {
         lobbyLock = lobbyLock.dispose();
         queueLock = queueLock.dispose();
         startLock = startLock.dispose();
     }
-    
+
     private static List<Integer> convertToIntegerArray(List<Double> list) {
         List<Integer> intList = new ArrayList<>();
-        for(Double d: list) intList.add(d.intValue());
+        for (Double d : list) {
+            intList.add(d.intValue());
+        }
 
         return intList;
     }
-    
+
     public static long getLobbyDelay() {
         return ServerConstants.EVENT_LOBBY_DELAY;
     }
-    
+
     private List<Integer> getLobbyRange() {
         try {
             if (!ServerConstants.JAVA_8) {
-                return convertToIntegerArray((List<Double>)iv.invokeFunction("setLobbyRange", (Object) null));
+                return convertToIntegerArray((List<Double>) iv.invokeFunction("setLobbyRange", (Object) null));
             } else {  // java 8 support here thanks to MedicOP
                 /*
                 ScriptObjectMirror object = (ScriptObjectMirror) iv.invokeFunction("setLobbyRange", (Object) null);
                 int[] to = object.to(int[].class);
                 List<Integer> list = new ArrayList<>();
                 for (int i : to) {
-                    list.add(i);
+                list.add(i);
                 }
                 return list;
-                */
-                
+                 */
+
                 throw new NoSuchMethodException();
             }
         } catch (ScriptException | NoSuchMethodException ex) { // they didn't define a lobby range
             List<Integer> defaultRange = new ArrayList<>();
             defaultRange.add(0);
             defaultRange.add(maxLobbys);
-            
+
             return defaultRange;
         }
     }
@@ -208,24 +215,26 @@ public class EventManager {
 
     public EventScheduledFuture schedule(final String methodName, final EventInstanceManager eim, long delay) {
         Runnable r = new Runnable() {
+
             @Override
             public void run() {
                 try {
                     iv.invokeFunction(methodName, eim);
                 } catch (ScriptException | NoSuchMethodException ex) {
-                    Logger.getLogger(EventManager.class.getName()).log(Level.SEVERE, null, ex);
+                    Logger.getLogger(EventManager.class.getName()).log(Level.SEVERE, "Error in event script: " + EventManager.this.getName(), ex);
                 }
             }
         };
-        
+
         ess.registerEntry(r, delay);
-        
+
         // hate to do that, but those schedules can still be cancelled, so well... Let GC do it's job
         return new EventScheduledFuture(r, ess);
     }
 
     public EventScheduledFuture scheduleAtTimestamp(final String methodName, long timestamp) {
         Runnable r = new Runnable() {
+
             @Override
             public void run() {
                 try {
@@ -235,7 +244,7 @@ public class EventManager {
                 }
             }
         };
-        
+
         ess.registerEntry(r, timestamp - server.getCurrentTime());
         return new EventScheduledFuture(r, ess);
     }
@@ -243,11 +252,11 @@ public class EventManager {
     public World getWorldServer() {
         return wserv;
     }
-    
+
     public Channel getChannelServer() {
         return cserv;
     }
-    
+
     public Invocable getIv() {
         return iv;
     }
@@ -263,32 +272,32 @@ public class EventManager {
     }
 
     public EventInstanceManager newInstance(String name) throws EventInstanceInProgressException {
+        name += Randomizer.nextInt(1000000000);
         EventInstanceManager ret = getReadyInstance();
-        
-        if(ret == null) {
+        if (ret == null) {
             ret = new EventInstanceManager(this, name);
+
         } else {
             ret.setName(name);
         }
-        
         synchronized (instances) {
             if (instances.containsKey(name)) {
                 throw new EventInstanceInProgressException(name, this.getName());
             }
-            
+
             instances.put(name, ret);
         }
         return ret;
     }
-    
+
     public MapleMarriage newMarriage(String name) throws EventInstanceInProgressException {
         MapleMarriage ret = new MapleMarriage(this, name);
-        
+
         synchronized (instances) {
             if (instances.containsKey(name)) {
                 throw new EventInstanceInProgressException(name, this.getName());
             }
-            
+
             instances.put(name, ret);
         }
         return ret;
@@ -296,10 +305,11 @@ public class EventManager {
 
     public void disposeInstance(final String name) {
         ess.registerEntry(new Runnable() {
+
             @Override
             public void run() {
                 freeLobbyInstance(name);
-                
+
                 synchronized (instances) {
                     instances.remove(name);
                 }
@@ -307,14 +317,22 @@ public class EventManager {
         }, ServerConstants.EVENT_LOBBY_DELAY * 1000);
     }
 
+    public void disposedInstance(final String name) {
+        freeLobbyInstance(name);
+
+        synchronized (instances) {
+            instances.remove(name);
+        }
+    }
+
     public void setProperty(String key, String value) {
         props.setProperty(key, value);
     }
-    
+
     public void setIntProperty(String key, int value) {
         setProperty(key, value);
     }
-    
+
     public void setProperty(String key, int value) {
         props.setProperty(key, value + "");
     }
@@ -322,11 +340,11 @@ public class EventManager {
     public String getProperty(String key) {
         return props.getProperty(key);
     }
-    
+
     public int getIntProperty(String key) {
         return Integer.parseInt(props.getProperty(key));
     }
-    
+
     private void setLockLobby(int lobbyId, boolean lock) {
         lobbyLock.lock();
         try {
@@ -335,106 +353,124 @@ public class EventManager {
             lobbyLock.unlock();
         }
     }
-    
+
     private boolean startLobbyInstance(int lobbyId) {
         lobbyLock.lock();
         try {
-            if(!openedLobbys.get(lobbyId)) {
+            if (!openedLobbys.get(lobbyId)) {
                 openedLobbys.set(lobbyId, true);
                 return true;
             }
-            
+
             return false;
         } finally {
             lobbyLock.unlock();
         }
     }
-    
+
     private void freeLobbyInstance(String lobbyName) {
         Integer i = instanceLocks.get(lobbyName);
-        if(i == null) return;
-        
+        if (i == null) {
+            return;
+        }
+
         instanceLocks.remove(lobbyName);
-        if(i > -1) setLockLobby(i, false);
+        if (i > -1) {
+            setLockLobby(i, false);
+        }
     }
 
     public String getName() {
         return name;
     }
-    
+
     private int availableLobbyInstance() {
-            List<Integer> lr = getLobbyRange();
-            int lb = 0, hb = 0;
-            
-            if(lr.size() >= 2) {
-                lb = Math.max(lr.get(0), 0);
-                hb = Math.min(lr.get(1), maxLobbys - 1);
+        List<Integer> lr = getLobbyRange();
+        int lb = 0, hb = 0;
+
+        if (lr.size() >= 2) {
+            lb = Math.max(lr.get(0), 0);
+            hb = Math.min(lr.get(1), maxLobbys - 1);
+        }
+
+        for (int i = lb; i <= hb; i++) {
+            if (startLobbyInstance(i)) {
+                return i;
             }
-        
-            for(int i = lb; i <= hb; i++) {
-                    if(startLobbyInstance(i)) {
-                            return i;
-                    }
-            }
-            
-            return -1;
+        }
+
+        return -1;
     }
-    
+
     private String getInternalScriptExceptionMessage(Throwable a) {
         if (!(a instanceof ScriptException)) {
             return null;
         }
-        
-        while(true) {
+
+        while (true) {
             Throwable t = a;
             a = a.getCause();
-            
+
             if (a == null) {
                 return t.getMessage();
             }
         }
     }
-    
+
     private EventInstanceManager createInstance(String name, Object... args) throws ScriptException, NoSuchMethodException {
         return (EventInstanceManager) iv.invokeFunction(name, args);
     }
-    
+
     private void registerEventInstance(String eventName, int lobbyId) {
         Integer oldLobby = instanceLocks.get(eventName);
         if (oldLobby != null) {
             setLockLobby(oldLobby, false);
         }
-        
+
         instanceLocks.put(eventName, lobbyId);
     }
-    
+
+    private void registerEventInstance(String eventName) {
+        Integer oldLobby = instanceLocks.get(eventName);
+        if (oldLobby != null) {
+            setLockLobby(oldLobby, false);
+        }
+
+        instanceLocks.put(eventName, 1);
+    }
+
     public boolean startInstance(MapleExpedition exped) {
         return startInstance(-1, exped);
     }
-    
+
     public boolean startInstance(int lobbyId, MapleExpedition exped) {
         return startInstance(lobbyId, exped, exped.getLeader());
     }
 
     //Expedition method: starts an expedition
     public boolean startInstance(int lobbyId, MapleExpedition exped, MapleCharacter leader) {
-        if (this.isDisposed()) return false;
-        
+        if (this.isDisposed()) {
+            return false;
+        }
+
         try {
-            if(!playerPermit.contains(leader.getId()) && startSemaphore.tryAcquire(7777, TimeUnit.MILLISECONDS)) {
+            if (!playerPermit.contains(leader.getId()) && startSemaphore.tryAcquire(7777, TimeUnit.MILLISECONDS)) {
                 playerPermit.add(leader.getId());
-                
+
                 startLock.lock();
                 try {
                     try {
-                        if(lobbyId == -1) {
+                        if (lobbyId == -1) {
                             lobbyId = availableLobbyInstance();
-                            if(lobbyId == -1) return false;
+                            if (lobbyId == -1) {
+                                return false;
+                            }
+                        } else {
+                            if (!startLobbyInstance(lobbyId)) {
+                                return false;
+                            }
                         }
-                        else {
-                            if(!startLobbyInstance(lobbyId)) return false;
-                        }
-                        
+
                         EventInstanceManager eim;
                         try {
                             eim = createInstance("setup", leader.getClient().getChannel());
@@ -444,13 +480,13 @@ public class EventManager {
                             if (message != null && !message.startsWith(EventInstanceInProgressException.EIIP_KEY)) {
                                 throw e;
                             }
-                            
-                            if(lobbyId > -1) {
+
+                            if (lobbyId > -1) {
                                 setLockLobby(lobbyId, false);
                             }
                             return false;
                         }
-                        
+
                         eim.setLeader(leader);
 
                         exped.start();
@@ -468,10 +504,10 @@ public class EventManager {
                     startSemaphore.release();
                 }
             }
-        } catch(InterruptedException ie) {
+        } catch (InterruptedException ie) {
             playerPermit.remove(leader.getId());
         }
-        
+
         return false;
     }
 
@@ -479,33 +515,38 @@ public class EventManager {
     public boolean startInstance(MapleCharacter chr) {
         return startInstance(-1, chr);
     }
-    
+
+    public boolean startInstancePlayer(int lobbyId, MapleCharacter chr) {
+        return startInstance(lobbyId, chr);
+    }
+
     public boolean startInstance(int lobbyId, MapleCharacter leader) {
         return startInstance(lobbyId, leader, leader, 1);
     }
-    
+
     public boolean startInstance(int lobbyId, MapleCharacter chr, MapleCharacter leader, int difficulty) {
-        if (this.isDisposed()) return false;
-        
+        if (this.isDisposed()) {
+            return false;
+        }
+
         try {
-            if(!playerPermit.contains(leader.getId()) && startSemaphore.tryAcquire(7777, TimeUnit.MILLISECONDS)) {
+            if (!playerPermit.contains(leader.getId()) && startSemaphore.tryAcquire(7777, TimeUnit.MILLISECONDS)) {
                 playerPermit.add(leader.getId());
-                
+
                 startLock.lock();
                 try {
                     try {
-                        if(lobbyId == -1) {
+                        if (lobbyId == -1) {
                             lobbyId = availableLobbyInstance();
-                            if(lobbyId == -1) {
+                            if (lobbyId == -1) {
+                                return false;
+                            }
+                        } else {
+                            if (!startLobbyInstance(lobbyId)) {
                                 return false;
                             }
                         }
-                        else {
-                            if(!startLobbyInstance(lobbyId)) {
-                                return false;
-                            }
-                        }
-                        
+
                         EventInstanceManager eim;
                         try {
                             eim = createInstance("setup", difficulty, (lobbyId > -1) ? lobbyId : leader.getId());
@@ -515,15 +556,17 @@ public class EventManager {
                             if (message != null && !message.startsWith(EventInstanceInProgressException.EIIP_KEY)) {
                                 throw e;
                             }
-                            
-                            if(lobbyId > -1) {
+
+                            if (lobbyId > -1) {
                                 setLockLobby(lobbyId, false);
                             }
                             return false;
                         }
                         eim.setLeader(leader);
 
-                        if(chr != null) eim.registerPlayer(chr);
+                        if (chr != null) {
+                            eim.registerPlayer(chr);
+                        }
 
                         eim.startEvent();
                     } catch (ScriptException | NoSuchMethodException ex) {
@@ -537,40 +580,52 @@ public class EventManager {
                     startSemaphore.release();
                 }
             }
-        } catch(InterruptedException ie) {
+        } catch (InterruptedException ie) {
             playerPermit.remove(leader.getId());
         }
-        
+
         return false;
-    }    
-    
+    }
+
     //PQ method: starts a PQ
     public boolean startInstance(MapleParty party, MapleMap map) {
         return startInstance(-1, party, map);
     }
-    
+
+    public int random(int min, int max) {
+        return Randomizer.random(min, max);
+    }
+
+    public int randomNext(int value) {
+        return Randomizer.nextInt(value);
+    }
+
     public boolean startInstance(int lobbyId, MapleParty party, MapleMap map) {
         return startInstance(lobbyId, party, map, party.getLeader().getPlayer());
     }
-    
+
     public boolean startInstance(int lobbyId, MapleParty party, MapleMap map, MapleCharacter leader) {
-        if (this.isDisposed()) return false;
-        
+        if (this.isDisposed()) {
+            return false;
+        }
         try {
-            if(!playerPermit.contains(leader.getId()) && startSemaphore.tryAcquire(7777, TimeUnit.MILLISECONDS)) {
+            if (!playerPermit.contains(leader.getId()) && startSemaphore.tryAcquire(7777, TimeUnit.MILLISECONDS)) {
                 playerPermit.add(leader.getId());
-                
+
                 startLock.lock();
                 try {
                     try {
-                        if(lobbyId == -1) {
+                        if (lobbyId == -1) {
                             lobbyId = availableLobbyInstance();
-                            if(lobbyId == -1) return false;
+                            if (lobbyId == -1) {
+                                return false;
+                            }
+                        } else {
+                            if (!startLobbyInstance(lobbyId)) {
+                                return false;
+                            }
                         }
-                        else {
-                            if(!startLobbyInstance(lobbyId)) return false;
-                        }
-                        
+
                         EventInstanceManager eim;
                         try {
                             eim = createInstance("setup", (Object) null);
@@ -580,13 +635,13 @@ public class EventManager {
                             if (message != null && !message.startsWith(EventInstanceInProgressException.EIIP_KEY)) {
                                 throw e;
                             }
-                            
-                            if(lobbyId > -1) {
+
+                            if (lobbyId > -1) {
                                 setLockLobby(lobbyId, false);
                             }
                             return false;
                         }
-                        
+
                         eim.setLeader(leader);
 
                         eim.registerParty(party, map);
@@ -604,40 +659,45 @@ public class EventManager {
                     startSemaphore.release();
                 }
             }
-        } catch(InterruptedException ie) {
+        } catch (InterruptedException ie) {
             playerPermit.remove(leader.getId());
         }
-        
+
         return false;
     }
-    
+
     //PQ method: starts a PQ with a difficulty level, requires function setup(difficulty, leaderid) instead of setup()
     public boolean startInstance(MapleParty party, MapleMap map, int difficulty) {
         return startInstance(-1, party, map, difficulty);
     }
-    
+
     public boolean startInstance(int lobbyId, MapleParty party, MapleMap map, int difficulty) {
         return startInstance(lobbyId, party, map, difficulty, party.getLeader().getPlayer());
     }
-    
+
     public boolean startInstance(int lobbyId, MapleParty party, MapleMap map, int difficulty, MapleCharacter leader) {
-        if (this.isDisposed()) return false;
-        
+        if (this.isDisposed()) {
+            return false;
+        }
+
         try {
-            if(!playerPermit.contains(leader.getId()) && startSemaphore.tryAcquire(7777, TimeUnit.MILLISECONDS)) {
+            if (!playerPermit.contains(leader.getId()) && startSemaphore.tryAcquire(7777, TimeUnit.MILLISECONDS)) {
                 playerPermit.add(leader.getId());
-                
+
                 startLock.lock();
                 try {
                     try {
-                        if(lobbyId == -1) {
+                        if (lobbyId == -1) {
                             lobbyId = availableLobbyInstance();
-                            if(lobbyId == -1) return false;
+                            if (lobbyId == -1) {
+                                return false;
+                            }
+                        } else {
+                            if (!startLobbyInstance(lobbyId)) {
+                                return false;
+                            }
                         }
-                        else {
-                            if(!startLobbyInstance(lobbyId)) return false;
-                        }
-                        
+
                         EventInstanceManager eim;
                         try {
                             eim = createInstance("setup", difficulty, (lobbyId > -1) ? lobbyId : party.getLeaderId());
@@ -647,13 +707,13 @@ public class EventManager {
                             if (message != null && !message.startsWith(EventInstanceInProgressException.EIIP_KEY)) {
                                 throw e;
                             }
-                            
-                            if(lobbyId > -1) {
+
+                            if (lobbyId > -1) {
                                 setLockLobby(lobbyId, false);
                             }
                             return false;
                         }
-                        
+
                         eim.setLeader(leader);
 
                         eim.registerParty(party, map);
@@ -671,10 +731,80 @@ public class EventManager {
                     startSemaphore.release();
                 }
             }
-        } catch(InterruptedException ie) {
+        } catch (InterruptedException ie) {
             playerPermit.remove(leader.getId());
         }
-        
+
+        return false;
+    }
+
+    public boolean hasDupeHWID(List<MapleCharacter> chrs, MapleCharacter leader) {
+        for (int i = 0; i < chrs.size(); i++) {
+            for (int j = i + 1; j < chrs.size(); j++) {
+                if (chrs.get(i).getClient().getHWID().equals(chrs.get(j).getClient().getHWID())) {
+                    leader.dropMessage("Cannot make instance due to player: " + chrs.get(i).getName() + " using dupiclated clients.");
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    public boolean startPlayerInstance(MapleCharacter chr, int difficulty) {
+        if (this.isDisposed()) {
+            return false;
+        }
+
+        try {
+            if (!playerPermit.contains(chr.getId()) && startSemaphore.tryAcquire(7777, TimeUnit.MILLISECONDS)) {
+                playerPermit.add(chr.getId());
+
+                startLock.lock();
+                try {
+                    try {
+                        if (chr.getRaid() != null || chr.getParty() != null) {
+                            if (hasDupeHWID(chr.getRaid() != null ? chr.getRaid().getMembers() : chr.getParty().getOnlinePartyMembers(), chr)) {
+                                return false;
+                            }
+                        }
+
+                        EventInstanceManager eim;
+                        try {
+                            eim = createInstance("setup", chr, difficulty);
+                            registerEventInstance(eim.getName());
+                        } catch (ScriptException | NullPointerException e) {
+                            String message = getInternalScriptExceptionMessage(e);
+                            if (message != null && !message.startsWith(EventInstanceInProgressException.EIIP_KEY)) {
+                                throw e;
+                            }
+                            return false;
+                        }
+                        eim.setLeader(chr);
+                        if (chr.getRaid() != null) {
+                            eim.registerRaid(chr.getRaid(), chr.getMap());
+                            chr.getRaid().setEligibleMembers(null);
+                        } else if (chr.getParty() != null) {
+                            eim.registerParty(chr.getParty(), chr.getMap());
+                            chr.getParty().setEligibleMembers(null);
+                        } else {
+                            eim.registerPlayer(chr);
+                        }
+                        eim.startEvent();
+                    } catch (ScriptException | NoSuchMethodException ex) {
+                        Logger.getLogger(EventManager.class.getName()).log(Level.SEVERE, null, ex);
+                    }
+
+                    return true;
+                } finally {
+                    startLock.unlock();
+                    playerPermit.remove(chr.getId());
+                    startSemaphore.release();
+                }
+            }
+        } catch (InterruptedException ie) {
+            playerPermit.remove(chr.getId());
+        }
+
         return false;
     }
 
@@ -682,42 +812,47 @@ public class EventManager {
     public boolean startInstance(EventInstanceManager eim, String ldr) {
         return startInstance(-1, eim, ldr);
     }
-    
+
     public boolean startInstance(EventInstanceManager eim, MapleCharacter ldr) {
         return startInstance(-1, eim, ldr.getName(), ldr);
     }
-    
+
     public boolean startInstance(int lobbyId, EventInstanceManager eim, String ldr) {
         return startInstance(-1, eim, ldr, eim.getEm().getChannelServer().getPlayerStorage().getCharacterByName(ldr));  // things they make me do...
     }
-    
+
     public boolean startInstance(int lobbyId, EventInstanceManager eim, String ldr, MapleCharacter leader) {
-        if (this.isDisposed()) return false;
-        
+        if (this.isDisposed()) {
+            return false;
+        }
+
         try {
-            if(!playerPermit.contains(leader.getId()) && startSemaphore.tryAcquire(7777, TimeUnit.MILLISECONDS)) {
+            if (!playerPermit.contains(leader.getId()) && startSemaphore.tryAcquire(7777, TimeUnit.MILLISECONDS)) {
                 playerPermit.add(leader.getId());
-                
+
                 startLock.lock();
                 try {
                     try {
-                        if(lobbyId == -1) {
+                        if (lobbyId == -1) {
                             lobbyId = availableLobbyInstance();
-                            if(lobbyId == -1) return false;
-                        }
-                        else {
-                            if(!startLobbyInstance(lobbyId)) return false;
+                            if (lobbyId == -1) {
+                                return false;
+                            }
+                        } else {
+                            if (!startLobbyInstance(lobbyId)) {
+                                return false;
+                            }
                         }
 
-                        if(eim == null) {
-                            if(lobbyId > -1) {
+                        if (eim == null) {
+                            if (lobbyId > -1) {
                                 setLockLobby(lobbyId, false);
                             }
                             return false;
                         }
                         registerEventInstance(eim.getName(), lobbyId);
                         eim.setLeader(leader);
-                        
+
                         iv.invokeFunction("setup", eim);
                         eim.setProperty("leader", ldr);
 
@@ -733,29 +868,23 @@ public class EventManager {
                     startSemaphore.release();
                 }
             }
-        } catch(InterruptedException ie) {
+        } catch (InterruptedException ie) {
             playerPermit.remove(leader.getId());
         }
-        
+
         return false;
     }
-    
+
+    //level system
     public List<MaplePartyCharacter> getEligibleParty(MapleParty party) {
         if (party == null) {
-            return(new ArrayList<>());
+            return (new ArrayList<>());
         }
         try {
             Object p = iv.invokeFunction("getEligibleParty", party.getPartyMembers());
-            
-            if(p != null) {
+
+            if (p != null) {
                 List<MaplePartyCharacter> lmpc;
-                
-                /*if(ServerConstants.JAVA_8) {
-                    lmpc = new ArrayList<>(((Map<String, MaplePartyCharacter>)(ScriptUtils.convert(p, Map.class))).values());
-                } else {
-                    lmpc = new ArrayList<>((List<MaplePartyCharacter>) p);
-                }*/
-                
                 lmpc = new ArrayList<>((List<MaplePartyCharacter>) p);
                 party.setEligibleMembers(lmpc);
                 return lmpc;
@@ -764,9 +893,166 @@ public class EventManager {
             ex.printStackTrace();
         }
 
-        return(new ArrayList<>());
+        return (new ArrayList<>());
     }
-    
+
+    public List<MaplePartyCharacter> getEligiblePartySrc(MapleParty party, int mapid, int lvlmin, int lvlmax, int mincount, int maxcount) {
+        if (party == null) {
+            return (new ArrayList<>());
+        }
+        List<MaplePartyCharacter> p = getEliPartySrc(party, mapid, lvlmin, lvlmax, mincount, maxcount);
+
+        if (p != null) {
+            List<MaplePartyCharacter> lmpc;
+            lmpc = new ArrayList<>((List<MaplePartyCharacter>) p);
+            party.setEligibleMembers(lmpc);
+            return lmpc;
+        }
+
+        return (new ArrayList<>());
+    }
+
+    private List<MaplePartyCharacter> getEliPartySrc(MapleParty party, int mapid, int lvlmin, int lvlmax, int mincount, int maxcount) {
+        boolean leader = false;
+        List<MaplePartyCharacter> eli = new ArrayList<MaplePartyCharacter>();
+        if (party.getMembers().size() > 0) {
+            MaplePartyCharacter[] partyList = (MaplePartyCharacter[]) party.getPartyMembers().toArray(new MaplePartyCharacter[0]);
+            for (MaplePartyCharacter ch : partyList) {
+                if (ch == null) {
+                    continue;
+                }
+                if (ch.getMapId() == mapid && ch.getPlayer().getTotalLevel() >= lvlmin) {
+                    if (ch.isLeader()) {
+                        leader = true;
+                    }
+                    eli.add(ch);
+                }
+            }
+        }
+        if (!(leader && eli.size() >= mincount && eli.size() <= maxcount)) {
+            eli.clear();
+        }
+        return eli;
+    }
+
+    public List<MapleCharacter> getEligibleRaidSrc(MapleRaid party, int mapid, int lvlmin, int lvlmax, int mincount, int maxcount) {
+        if (party == null) {
+            return (new ArrayList<>());
+        }
+        List<MapleCharacter> p = getEliRaidSrc(party, mapid, lvlmin, lvlmax, mincount, maxcount);
+
+        if (p != null) {
+            List<MapleCharacter> lmpc;
+            lmpc = new ArrayList<>((List<MapleCharacter>) p);
+            party.setEligibleMembers(lmpc);
+            return lmpc;
+        }
+
+        return (new ArrayList<>());
+    }
+
+    private List<MapleCharacter> getEliRaidSrc(MapleRaid party, int mapid, int lvlmin, int lvlmax, int mincount, int maxcount) {
+        boolean leader = false;
+        List<MapleCharacter> eli = new ArrayList<MapleCharacter>();
+        if (party.getMembers().size() > 0) {
+            MapleCharacter[] partyList = (MapleCharacter[]) party.getMembers().toArray(new MapleCharacter[0]);
+            for (MapleCharacter ch : partyList) {
+                if (ch == null) {
+                    continue;
+                }
+                if (ch.getMapId() == mapid && ch.getTotalLevel() >= lvlmin) {
+                    if (party.getLeader(ch)) {
+                        leader = true;
+                    }
+                    eli.add(ch);
+                }
+            }
+        }
+        if (!(leader && eli.size() >= mincount && eli.size() <= maxcount)) {
+            eli.clear();
+        }
+        return eli;
+    }
+
+    //gear score system
+    public List<MaplePartyCharacter> getGearEligiblePartySrc(MapleParty party, int mapid, int lvlmin, int mincount, int maxcount) {
+        if (party == null) {
+            return (new ArrayList<>());
+        }
+        List<MaplePartyCharacter> p = getGearEliPartySrc(party, mapid, lvlmin, mincount, maxcount);
+
+        if (p != null) {
+            List<MaplePartyCharacter> lmpc;
+            lmpc = new ArrayList<>((List<MaplePartyCharacter>) p);
+            party.setEligibleMembers(lmpc);
+            return lmpc;
+        }
+
+        return (new ArrayList<>());
+    }
+
+    private List<MaplePartyCharacter> getGearEliPartySrc(MapleParty party, int mapid, int lvlmin, int mincount, int maxcount) {
+        boolean leader = false;
+        List<MaplePartyCharacter> eli = new ArrayList<MaplePartyCharacter>();
+        if (party.getMembers().size() > 0) {
+            MaplePartyCharacter[] partyList = (MaplePartyCharacter[]) party.getPartyMembers().toArray(new MaplePartyCharacter[0]);
+            for (MaplePartyCharacter ch : partyList) {
+                if (ch == null) {
+                    continue;
+                }
+                if (ch.getMapId() == mapid) {
+                    if (ch.isLeader()) {
+                        leader = true;
+                    }
+                    eli.add(ch);
+                }
+            }
+        }
+        if (!(leader && eli.size() >= mincount && eli.size() <= maxcount)) {
+            eli.clear();
+        }
+        return eli;
+    }
+
+    public List<MapleCharacter> getGearEligibleRaidSrc(MapleRaid party, int mapid, int lvlmin, int mincount, int maxcount) {
+        if (party == null) {
+            return (new ArrayList<>());
+        }
+        List<MapleCharacter> p = getGearEliRaidSrc(party, mapid, lvlmin, mincount, maxcount);
+
+        if (p != null) {
+            List<MapleCharacter> lmpc;
+            lmpc = new ArrayList<>((List<MapleCharacter>) p);
+            party.setEligibleMembers(lmpc);
+            return lmpc;
+        }
+
+        return (new ArrayList<>());
+    }
+
+    private List<MapleCharacter> getGearEliRaidSrc(MapleRaid party, int mapid, int lvlmin, int mincount, int maxcount) {
+        boolean leader = false;
+        List<MapleCharacter> eli = new ArrayList<MapleCharacter>();
+        if (party.getMembers().size() > 0) {
+            MapleCharacter[] partyList = (MapleCharacter[]) party.getMembers().toArray(new MapleCharacter[0]);
+            for (MapleCharacter ch : partyList) {
+                if (ch == null) {
+                    continue;
+                }
+                if (ch.getMapId() == mapid) {
+                    if (party.getLeader(ch)) {
+                        leader = true;
+                    }
+                    eli.add(ch);
+                }
+            }
+        }
+        if (!(leader && eli.size() >= mincount && eli.size() <= maxcount)) {
+            eli.clear();
+        }
+        return eli;
+    }
+
     public void clearPQ(EventInstanceManager eim) {
         try {
             iv.invokeFunction("clearPQ", eim);
@@ -774,7 +1060,7 @@ public class EventManager {
             Logger.getLogger(EventManager.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
-    
+
     public void clearPQ(EventInstanceManager eim, MapleMap toMap) {
         try {
             iv.invokeFunction("clearPQ", eim, toMap);
@@ -782,66 +1068,71 @@ public class EventManager {
             Logger.getLogger(EventManager.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
-    
+
     public MapleMonster getMonster(int mid) {
-        return(MapleLifeFactory.getMonster(mid));
+        return (MapleLifeFactory.getMonster(mid, this.getChannelServer().getId()));
     }
-    
+
     private void exportReadyGuild(Integer guildId) {
         MapleGuild mg = server.getGuild(guildId);
-        String callout = "[Guild Quest] Your guild has been registered to attend to the Sharenian Guild Quest at channel " + this.getChannelServer().getId() 
-                       + " and HAS JUST STARTED THE STRATEGY PHASE. After 3 minutes, no more guild members will be allowed to join the effort."
-                       + " Check out Shuang at the excavation site in Perion for more info.";
-        
+        String callout = "[Guild Quest] Your guild has been registered to attend to the Sharenian Guild Quest at channel " + this.getChannelServer().getId()
+                + " and HAS JUST STARTED THE STRATEGY PHASE. After 3 minutes, no more guild members will be allowed to join the effort."
+                + " Check out Shuang at the excavation site in Perion for more info.";
+
         mg.dropMessage(6, callout);
     }
-    
+
     private void exportMovedQueueToGuild(Integer guildId, int place) {
         MapleGuild mg = server.getGuild(guildId);
-        String callout = "[Guild Quest] Your guild has been registered to attend to the Sharenian Guild Quest at channel " + this.getChannelServer().getId() 
-                       + " and is currently on the " + GameConstants.ordinal(place) + " place on the waiting queue.";
-        
+        String callout = "[Guild Quest] Your guild has been registered to attend to the Sharenian Guild Quest at channel " + this.getChannelServer().getId()
+                + " and is currently on the " + GameConstants.ordinal(place) + " place on the waiting queue.";
+
         mg.dropMessage(6, callout);
     }
-    
+
     private List<Integer> getNextGuildQueue() {
-        synchronized(queuedGuilds) {
+        synchronized (queuedGuilds) {
             Integer guildId = queuedGuilds.poll();
-            if(guildId == null) return null;
-            
+            if (guildId == null) {
+                return null;
+            }
+
             wserv.removeGuildQueued(guildId);
             Integer leaderId = queuedGuildLeaders.remove(guildId);
-            
+
             int place = 1;
-            for(Integer i: queuedGuilds) {
+            for (Integer i : queuedGuilds) {
                 exportMovedQueueToGuild(i, place);
                 place++;
             }
-            
+
             List<Integer> list = new ArrayList<>(2);
-            list.add(guildId); list.add(leaderId);
+            list.add(guildId);
+            list.add(leaderId);
             return list;
         }
     }
-    
+
     public boolean isQueueFull() {
-        synchronized(queuedGuilds) {
+        synchronized (queuedGuilds) {
             return queuedGuilds.size() >= ServerConstants.EVENT_MAX_GUILD_QUEUE;
         }
     }
-    
+
     public int getQueueSize() {
-        synchronized(queuedGuilds) {
+        synchronized (queuedGuilds) {
             return queuedGuilds.size();
         }
     }
-    
+
     public byte addGuildToQueue(Integer guildId, Integer leaderId) {
-        if(wserv.isGuildQueued(guildId)) return -1;
-        
-        if(!isQueueFull()) {
+        if (wserv.isGuildQueued(guildId)) {
+            return -1;
+        }
+
+        if (!isQueueFull()) {
             boolean canStartAhead;
-            synchronized(queuedGuilds) {
+            synchronized (queuedGuilds) {
                 canStartAhead = queuedGuilds.isEmpty();
 
                 queuedGuilds.add(guildId);
@@ -851,10 +1142,10 @@ public class EventManager {
                 int place = queuedGuilds.size();
                 exportMovedQueueToGuild(guildId, place);
             }
-            
-            if(canStartAhead) {
-                if(!attemptStartGuildInstance()) {
-                    synchronized(queuedGuilds) {
+
+            if (canStartAhead) {
+                if (!attemptStartGuildInstance()) {
+                    synchronized (queuedGuilds) {
                         queuedGuilds.add(guildId);
                         wserv.putGuildQueued(guildId);
                         queuedGuildLeaders.put(guildId, leaderId);
@@ -863,33 +1154,33 @@ public class EventManager {
                     return 2;
                 }
             }
-            
+
             return 1;
         } else {
             return 0;
         }
     }
-    
+
     public boolean attemptStartGuildInstance() {
         MapleCharacter chr = null;
         List<Integer> guildInstance = null;
-        while(chr == null) {
+        while (chr == null) {
             guildInstance = getNextGuildQueue();
-            if(guildInstance == null) {
+            if (guildInstance == null) {
                 return false;
             }
 
             chr = cserv.getPlayerStorage().getCharacterById(guildInstance.get(1));
         }
-        
-        if(startInstance(chr)) {
-            exportReadyGuild(guildInstance.get(0));    
+
+        if (startInstance(chr)) {
+            exportReadyGuild(guildInstance.get(0));
             return true;
         } else {
             return false;
         }
     }
-    
+
     public void startQuest(MapleCharacter chr, int id, int npcid) {
         try {
             MapleQuest.getInstance(id).forceStart(chr, npcid);
@@ -905,66 +1196,76 @@ public class EventManager {
             ex.printStackTrace();
         }
     }
-    
+
     public int getTransportationTime(int travelTime) {
         return this.getWorldServer().getTransportationTime(travelTime);
     }
-    
+
     private void fillEimQueue() {
         ThreadManager.getInstance().newTask(new EventManagerWorker());  //call new thread to fill up readied instances queue
     }
-    
+
     private EventInstanceManager getReadyInstance() {
         queueLock.lock();
         try {
-            if(readyInstances.isEmpty()) {
+            if (readyInstances.isEmpty()) {
                 fillEimQueue();
                 return null;
             }
-            
+
             EventInstanceManager eim = readyInstances.remove(0);
             fillEimQueue();
-                    
+
             return eim;
         } finally {
             queueLock.unlock();
         }
     }
-    
+
     private void instantiateQueuedInstance() {
         int nextEventId;
         queueLock.lock();
         try {
-            if (this.isDisposed() || readyInstances.size() + onLoadInstances >= Math.ceil((double)maxLobbys / 3.0)) return;
-            
+            if (this.isDisposed() || readyInstances.size() + onLoadInstances >= Math.ceil((double) maxLobbys / 3.0)) {
+                return;
+            }
+
             onLoadInstances++;
             nextEventId = readyId;
             readyId++;
         } finally {
             queueLock.unlock();
         }
-        
+
         EventInstanceManager eim = new EventInstanceManager(this, "sampleName" + nextEventId);
         queueLock.lock();
         try {
             if (this.isDisposed()) {  // EM already disposed
                 return;
             }
-            
+
             readyInstances.add(eim);
             onLoadInstances--;
         } finally {
             queueLock.unlock();
         }
-        
+
         instantiateQueuedInstance();    // keep filling the queue until reach threshold.
     }
-    
+
     private class EventManagerWorker implements Runnable {
-    
+
         @Override
         public void run() {
             instantiateQueuedInstance();
         }
+    }
+
+    public void BroadcastMsg(String msg) {
+        Server.getInstance().broadcastMessage(MaplePacketCreator.serverNotice(6, msg));
+    }
+
+    public void BroadcastChMsg(String msg) {
+        this.getChannelServer().broadcastPacket(MaplePacketCreator.serverNotice(6, msg));
     }
 }

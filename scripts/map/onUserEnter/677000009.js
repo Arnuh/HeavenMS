@@ -12,6 +12,6 @@ function start(ms) {
 		return;   	       
 	}
 
-	map.spawnMonsterOnGroundBelow(MapleLifeFactory.getMonster(mobId), pos);
+	map.spawnMonsterOnGroundBelow(MapleLifeFactory.getMonster(mobId, map.getChannelId()), pos);
 	player.message(mobName + " has appeared!");
 }

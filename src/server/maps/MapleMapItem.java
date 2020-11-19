@@ -31,6 +31,7 @@ import net.server.audit.locks.factory.MonitoredReentrantLockFactory;
 
 public class MapleMapItem extends AbstractMapleMapObject {
     protected MapleClient ownerClient;
+    protected MapleCharacter owner;
     protected Item item;
     protected MapleMapObject dropper;
     protected int character_ownerid, party_ownerid, meso, questid = -1;
@@ -50,6 +51,7 @@ public class MapleMapItem extends AbstractMapleMapObject {
 	this.meso = 0;
 	this.type = type;
 	this.playerDrop = playerDrop;
+        this.owner = owner;
     }
 
     public MapleMapItem(Item item, Point position, MapleMapObject dropper, MapleCharacter owner, MapleClient ownerClient, byte type, boolean playerDrop, int questid) {
@@ -64,6 +66,7 @@ public class MapleMapItem extends AbstractMapleMapObject {
 	this.type = type;
 	this.playerDrop = playerDrop;
 	this.questid = questid;
+        this.owner = owner;
     }
 
     public MapleMapItem(int meso, Point position, MapleMapObject dropper, MapleCharacter owner, MapleClient ownerClient, byte type, boolean playerDrop) {
@@ -77,6 +80,7 @@ public class MapleMapItem extends AbstractMapleMapObject {
         this.meso = meso;
 	this.type = type;
 	this.playerDrop = playerDrop;
+        this.owner = owner;
     }
 
     public final Item getItem() {
@@ -102,6 +106,10 @@ public class MapleMapItem extends AbstractMapleMapObject {
     
     public final int getPartyOwnerId() {
         return party_ownerid;
+    }
+    
+    public final MapleCharacter getOwner() {
+        return owner;
     }
     
     public final void setPartyOwnerId(int partyid) {

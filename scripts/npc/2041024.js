@@ -1,46 +1,77 @@
-/*
-    This file is part of the HeavenMS MapleStory Server
-    Copyleft (L) 2016 - 2018 RonanLana
+var status = 0;
 
-    This program is free software: you can redistribute it and/or modify
-    it under the terms of the GNU Affero General Public License as
-    published by the Free Software Foundation version 3 as published by
-    the Free Software Foundation. You may not use, modify or distribute
-    this program under any other version of the GNU Affero General Public
-    License.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU Affero General Public License for more details.
-
-    You should have received a copy of the GNU Affero General Public License
-    along with this program.  If not, see <http://www.gnu.org/licenses/>.
-*/
-
-var status;
- 
 function start() {
-        status = -1;
-        action(1, 0, 0);
+    if (cm.getPlayer().getRaid() != null) {
+        if (cm.getPlayer().isLeader()) {
+            cm.sendSimple("Which Papulatus do you want to take on?\r\n\#L1# Hard (100 Stamina)#l\r\n\#L2# Ultimate (250 Stamina)#l\r\n");
+        } else {
+            cm.sendOk("The leader of the party must be the to talk to me about joining the event.");
+            cm.dispose();
+        }
+    } else {
+        cm.sendOk("Event is Raid Mode Only.");
+        cm.dispose();
+    }
 }
 
 function action(mode, type, selection) {
-        if (mode == -1) {
-                cm.dispose();
-        } else {
-                if (mode == 0 && type > 0) {
-                        cm.dispose();
-                        return;
-                }
-                if (mode == 1)
-                        status++;
-                else
-                        status--;
-    
-                if(status == 0) {
-                        cm.sendOk("For those capable of great feats and bearers of an unwavering resolve, the #bfinal destination#k lies ahead past the gate. The Machine Room accepts only #rone party at a time#k, so make sure your party is ready when crossing the gate.");
-                        cm.dispose();
-                }
+    if (mode == 1) {
+        status++;
+    } else {
+        if (status == 0) {
+            cm.dispose();
+            return;
         }
+        status--;
+    }
+    if (status == 1) {
+        var cost = 0;
+        var minlevel = 0;
+        var em = null;
+
+        if (selection == 1) {
+            em = cm.getEventManager("Papulatus_Hard");
+            cost = 100;
+        } else if (selection == 2) {
+            em = cm.getEventManager("Papulatus_Ultimate");
+            cost = 250;
+        }
+        if (cm.getPlayer().itemlevel() >= minlevel) {
+            if (em != null) {
+                var eli;
+                if (cm.getPlayer().getParty() != null) {
+                    eli = em.getGearEligiblePartySrc(cm.getParty(), cm.getPlayer().getMapId(), minlevel, 1, 6);
+                } else if (cm.getPlayer().getRaid() != null) {
+                    eli = em.getGearEligibleRaidSrc(cm.getPlayer().getRaid(), cm.getPlayer().getMapId(), minlevel, 1, 40);
+                } else {
+                    cm.sendOk("Event has encountered an error");
+                    cm.dispose();
+                }
+                if (eli.size() > 0) {
+                    if (cm.getPlayer().getStamina() >= cost) {
+                        if (!em.startPlayerInstance(cm.getPlayer(), 1)) {
+                            cm.sendOk("Someone is already attempting the PQ or your instance is currently being reseted. Try again in few seconds.");
+                        } else {
+                            cm.getPlayer().removeStamina(cost);
+                        }
+                    } else {
+                        cm.sendOk("The leader of the group must have " + cost + " Stamina to Enter.");
+                    }
+                } else {
+                    cm.sendOk("You cannot start this instance yet, because either your party is not in the range size, some of your group members are not eligible to attempt it or they are not in this map. Minimum requirements are: Level " + minlevel + " +.");
+                }
+            } else {
+                cm.sendOk("Event has already started, Please wait.");
+                cm.dispose();
+            }
+        } else {
+            cm.sendOk("Event is Party/Raid Mode Only.");
+            cm.dispose();
+        }
+    }
+    cm.dispose();
 }
+
+
+
+    

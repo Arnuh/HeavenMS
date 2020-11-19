@@ -22,6 +22,6 @@
 /* Guild Rank Board */
 
 function start() {
-    cm.displayGuildRanks();
+    cm.displayPlayerRanks();
     cm.dispose();
 }

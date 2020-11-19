@@ -35,7 +35,7 @@ public final class MonsterBombHandler extends AbstractMaplePacketHandler {
         if (!c.getPlayer().isAlive() || monster == null) {
             return;
         }
-        if (monster.getId() == 8500003 || monster.getId() == 8500004) {
+        if (monster.getStats().selfDestruction() != null) {
             monster.getMap().broadcastMessage(MaplePacketCreator.killMonster(monster.getObjectId(), 4));
             c.getPlayer().getMap().removeMapObject(oid);
         }

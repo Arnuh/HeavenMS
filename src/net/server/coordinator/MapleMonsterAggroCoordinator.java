@@ -62,7 +62,7 @@ public class MapleMonsterAggroCoordinator {
     
     private class PlayerAggroEntry {
         protected int cid;
-        protected int averageDamage = 0;
+        protected long averageDamage = 0;
         protected int currentDamageInstances = 0;
         protected long accumulatedDamage = 0;
         
@@ -116,7 +116,7 @@ public class MapleMonsterAggroCoordinator {
         pae.toNextUpdate = (int) Math.ceil((120000L / ServerConstants.MOB_STATUS_AGGRO_INTERVAL) / Math.pow(2, pae.expireStreak + pae.currentDamageInstances));
     }
     
-    private static void insertEntryDamage(PlayerAggroEntry pae, int damage) {
+    private static void insertEntryDamage(PlayerAggroEntry pae, long damage) {
         synchronized (pae) {
             long totalDamage = pae.averageDamage;
             totalDamage *= pae.currentDamageInstances;
@@ -127,7 +127,7 @@ public class MapleMonsterAggroCoordinator {
             updateEntryExpiration(pae);
 
             pae.currentDamageInstances += 1;
-            pae.averageDamage = (int)(totalDamage / pae.currentDamageInstances);
+            pae.averageDamage = (totalDamage / pae.currentDamageInstances);
             pae.accumulatedDamage = totalDamage;
         }
     }
@@ -152,7 +152,7 @@ public class MapleMonsterAggroCoordinator {
         }
     }
     
-    public void addAggroDamage(MapleMonster mob, int cid, int damage) { // assumption: should not trigger after dispose()
+    public void addAggroDamage(MapleMonster mob, int cid, long damage) { // assumption: should not trigger after dispose()
         if (!mob.isAlive()) return;
         
         List<PlayerAggroEntry> sortedAggro = mobSortedAggros.get(mob);

@@ -22,6 +22,7 @@ package server.loot;
 import client.MapleCharacter;
 import java.util.LinkedList;
 import java.util.List;
+import server.MapleStatEffect;
 
 //import server.MapleItemInformationProvider;
 import server.life.MapleMonsterInformationProvider;

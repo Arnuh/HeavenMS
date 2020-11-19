@@ -125,6 +125,7 @@ public final class BBSOperationHandler extends AbstractMaplePacketHandler {
             if (!threadRS.next()) {
                 threadRS.close();
                 ps.close();
+                con.close();
                 return;
             }
             int threadid = threadRS.getInt("threadid");
@@ -224,11 +225,13 @@ public final class BBSOperationHandler extends AbstractMaplePacketHandler {
             if (!threadRS.next()) {
                 threadRS.close();
                 ps.close();
+                con.close();
                 return;
             }
             if (mc.getId() != threadRS.getInt("postercid") && mc.getGuildRank() > 2) {
                 threadRS.close();
                 ps.close();
+                con.close();
                 return;
             }
             int threadid = threadRS.getInt("threadid");
@@ -263,11 +266,13 @@ public final class BBSOperationHandler extends AbstractMaplePacketHandler {
             if (!rs.next()) {
                 rs.close();
                 ps.close();
+                con.close();
                 return;
             }
             if (mc.getId() != rs.getInt("postercid") && mc.getGuildRank() > 2) {
                 rs.close();
                 ps.close();
+                con.close();
                 return;
             }
             threadid = rs.getInt("threadid");
@@ -308,6 +313,7 @@ public final class BBSOperationHandler extends AbstractMaplePacketHandler {
                 if (!threadRS.next()) {
                     threadRS.close();
                     ps.close();
+                    con.close();
                     return;
                 }
                 ResultSet repliesRS = null;

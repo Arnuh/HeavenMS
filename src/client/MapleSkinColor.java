@@ -22,7 +22,7 @@
 package client;
 
 public enum MapleSkinColor {
-    NORMAL(0), DARK(1), BLACK(2), PALE(3), BLUE(4), GREEN(5), WHITE(9), PINK(10);
+    NORMAL(0), DARK(1), BLACK(2), PALE(3), BLUE(4), GREEN(5), SKIN(6), WHITEELF(7), INVISIBLE(8), WHITE(9),  PINK(10), ARAN(11), CYAN(12), CHERRY(13), ARANELF(14), ELF(15), DARKELF(16), BLACKELF(17);
     final int id;
 
     private MapleSkinColor(int id) {

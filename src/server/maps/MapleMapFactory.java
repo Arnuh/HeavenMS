@@ -1,23 +1,23 @@
 /*
- This file is part of the OdinMS Maple Story Server
- Copyright (C) 2008 Patrick Huy <patrick.huy@frz.cc>
- Matthias Butz <matze@odinms.de>
- Jan Christian Meyer <vimes@odinms.de>
+This file is part of the OdinMS Maple Story Server
+Copyright (C) 2008 Patrick Huy <patrick.huy@frz.cc>
+Matthias Butz <matze@odinms.de>
+Jan Christian Meyer <vimes@odinms.de>
 
- This program is free software: you can redistribute it and/or modify
- it under the terms of the GNU Affero General Public License as
- published by the Free Software Foundation version 3 as published by
- the Free Software Foundation. You may not use, modify or distribute
- this program under any other version of the GNU Affero General Public
- License.
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU Affero General Public License as
+published by the Free Software Foundation version 3 as published by
+the Free Software Foundation. You may not use, modify or distribute
+this program under any other version of the GNU Affero General Public
+License.
 
- This program is distributed in the hope that it will be useful,
- but WITHOUT ANY WARRANTY; without even the implied warranty of
- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- GNU Affero General Public License for more details.
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU Affero General Public License for more details.
 
- You should have received a copy of the GNU Affero General Public License
- along with this program.  If not, see <http://www.gnu.org/licenses/>.
+You should have received a copy of the GNU Affero General Public License
+along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 package server.maps;
 
@@ -50,10 +50,11 @@ import tools.StringUtil;
 public class MapleMapFactory {
 
     private static Map<Integer, Float> mapRecoveryRateCache = new HashMap<>();
-    
     private static MapleData nameData;
     private static MapleDataProvider mapSource;
-    
+    private final static MapleDataProvider stringDataWZ = MapleDataProviderFactory.getDataProvider(new File(System.getProperty("wzpath") + "/String.wz"));
+    private static MapleData mapStringData = stringDataWZ.getData("MapName.img");
+
     static {
         nameData = MapleDataProviderFactory.getDataProvider(new File(System.getProperty("wzpath") + "/String.wz")).getData("Map.img");
         mapSource = MapleDataProviderFactory.getDataProvider(new File(System.getProperty("wzpath") + "/Map.wz"));
@@ -81,9 +82,9 @@ public class MapleMapFactory {
             int x = MapleDataTool.getInt(life.getChildByPath("x"));
             int y = MapleDataTool.getInt(life.getChildByPath("y"));
             int hide = MapleDataTool.getInt("hide", life, 0);
-            int mobTime = MapleDataTool.getInt("mobTime", life, 0);
-            
-            loadLifeRaw(map, Integer.parseInt(id), type, cy, f, fh, rx0, rx1, x, y, hide, mobTime, team);
+            //int mobTime = MapleDataTool.getInt("mobTime", life, 0);
+
+            loadLifeRaw(map, Integer.parseInt(id), type, cy, f, fh, rx0, rx1, x, y, hide, 0, team);
         }
     }
 
@@ -121,7 +122,7 @@ public class MapleMapFactory {
     }
 
     private static void loadLifeRaw(MapleMap map, int id, String type, int cy, int f, int fh, int rx0, int rx1, int x, int y, int hide, int mobTime, int team) {
-        AbstractLoadedMapleLife myLife = loadLife(id, type, cy, f, fh, rx0, rx1, x, y, hide);
+        AbstractLoadedMapleLife myLife = loadLife(id, type, cy, f, fh, rx0, rx1, x, y, hide, map.getChannelId());
         if (myLife instanceof MapleMonster) {
             MapleMonster monster = (MapleMonster) myLife;
 
@@ -140,7 +141,7 @@ public class MapleMapFactory {
 
     public static MapleMap loadMapFromWz(int mapid, int world, int channel, EventInstanceManager event) {
         MapleMap map;
-        
+
         String mapName = getMapName(mapid);
         MapleData mapData = mapSource.getData(mapName);    // source.getData issue with giving nulls in rare ocasions found thanks to MedicOP
         MapleData infoData = mapData.getChildByPath("info");
@@ -199,6 +200,11 @@ public class MapleMapFactory {
             map.setMapLineBoundings(bounds[0], bounds[1], bounds[2], bounds[3]);
         }
 
+        int Ysize = MapleDataTool.getInt(infoData.getChildByPath("VRBottom")) - MapleDataTool.getInt(infoData.getChildByPath("VRTop"));
+        int Xsize = MapleDataTool.getInt(infoData.getChildByPath("VRRight")) - MapleDataTool.getInt(infoData.getChildByPath("VRLeft"));
+        int Area = Xsize * Ysize;
+        int size = (int) Math.sqrt(Area);
+        map.setMapSize(size);
         List<MapleFoothold> allFootholds = new LinkedList<>();
         Point lBound = new Point();
         Point uBound = new Point();
@@ -313,19 +319,10 @@ public class MapleMapFactory {
                 }
             }
         }
-        try {
-            map.setMapName(MapleDataTool.getString("mapName", nameData.getChildByPath(getMapStringName(mapid)), ""));
-            map.setStreetName(MapleDataTool.getString("streetName", nameData.getChildByPath(getMapStringName(mapid)), ""));
-        } catch (Exception e) {
-            if (mapid / 1000 != 1020) {     // explorer job introduction scenes
-                e.printStackTrace();
-                System.err.println("Not found mapid " + mapid);
-            }
+        map.setMapName(MapleDataTool.getString(mapid + "/mapName", mapStringData, "MISSINGNO"));
+        map.setStreetName(MapleDataTool.getString(mapid + "/streetName", mapStringData, "MISSINGNO"));
 
-            map.setMapName("");
-            map.setStreetName("");
-        }
-
+        map.setBGM(MapleDataTool.getString(infoData.getChildByPath("bgm")));
         map.setClock(mapData.getChildByPath("clock") != null);
         map.setEverlast(MapleDataTool.getIntConvert("everlast", infoData, 0) != 0); // thanks davidlafriniere for noticing value 0 accounting as true
         map.setTown(MapleDataTool.getIntConvert("town", infoData, 0) != 0);
@@ -361,9 +358,9 @@ public class MapleMapFactory {
 
         return map;
     }
-    
-    private static AbstractLoadedMapleLife loadLife(int id, String type, int cy, int f, int fh, int rx0, int rx1, int x, int y, int hide) {
-        AbstractLoadedMapleLife myLife = MapleLifeFactory.getLife(id, type);
+
+    private static AbstractLoadedMapleLife loadLife(int id, String type, int cy, int f, int fh, int rx0, int rx1, int x, int y, int hide, int channel) {
+        AbstractLoadedMapleLife myLife = MapleLifeFactory.getLife(id, type, channel);
         myLife.setCy(cy);
         myLife.setF(f);
         myLife.setFh(fh);
@@ -435,12 +432,28 @@ public class MapleMapFactory {
         } else {
             builder.append("etc");
         }
-        builder.append("/").append(mapid);
+        builder.append(mapid);
         return builder.toString();
     }
 
     public static float getMapRecoveryRate(int mapid) {
         Float recRate = mapRecoveryRateCache.get(mapid);
         return recRate != null ? recRate : 1.0f;
+    }
+
+    public static String loadPlaceName(int mapid) {
+        try {
+            return MapleDataTool.getString("mapName", nameData.getChildByPath(getMapStringName(mapid)), "");
+        } catch (Exception e) {
+            return "";
+        }
+    }
+
+    public static String loadStreetName(int mapid) {
+        try {
+            return MapleDataTool.getString("streetName", nameData.getChildByPath(getMapStringName(mapid)), "");
+        } catch (Exception e) {
+            return "";
+        }
     }
 }

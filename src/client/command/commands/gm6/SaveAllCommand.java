@@ -1,50 +1,56 @@
 /*
-    This file is part of the HeavenMS MapleStory Server, commands OdinMS-based
-    Copyleft (L) 2016 - 2018 RonanLana
+ This file is part of the HeavenMS MapleStory Server, commands OdinMS-based
+ Copyleft (L) 2016 - 2018 RonanLana
 
-    This program is free software: you can redistribute it and/or modify
-    it under the terms of the GNU Affero General Public License as
-    published by the Free Software Foundation version 3 as published by
-    the Free Software Foundation. You may not use, modify or distribute
-    this program under any other version of the GNU Affero General Public
-    License.
+ This program is free software: you can redistribute it and/or modify
+ it under the terms of the GNU Affero General Public License as
+ published by the Free Software Foundation version 3 as published by
+ the Free Software Foundation. You may not use, modify or distribute
+ this program under any other version of the GNU Affero General Public
+ License.
 
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU Affero General Public License for more details.
+ This program is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ GNU Affero General Public License for more details.
 
-    You should have received a copy of the GNU Affero General Public License
-    along with this program.  If not, see <http://www.gnu.org/licenses/>.
-*/
+ You should have received a copy of the GNU Affero General Public License
+ along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
 
 /*
-   @Author: Arthur L - Refactored command content into modules
-*/
+ @Author: Arthur L - Refactored command content into modules
+ */
 package client.command.commands.gm6;
 
 import client.command.Command;
 import client.MapleClient;
 import client.MapleCharacter;
+import java.sql.Connection;
+import java.sql.SQLException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import net.server.Server;
 import net.server.world.World;
-import tools.MaplePacketCreator;
+import tools.DatabaseConnection;
 
 public class SaveAllCommand extends Command {
+
     {
         setDescription("");
     }
 
     @Override
     public void execute(MapleClient c, String[] params) {
+        long timeToTake = System.currentTimeMillis();
         MapleCharacter player = c.getPlayer();
         for (World world : Server.getInstance().getWorlds()) {
             for (MapleCharacter chr : world.getPlayerStorage().getAllCharacters()) {
-                chr.saveCharToDB();
+                chr.saveCharToDBType(12);
+                chr.saveCharToDBType(11);
             }
         }
-        String message = player.getName() + " used !saveall.";
-        Server.getInstance().broadcastGMMessage(c.getWorld(), MaplePacketCreator.serverNotice(5, message));
         player.message("All players saved successfully.");
+        System.out.println("Auto save completed in " + ((System.currentTimeMillis() - timeToTake) / 1000.0) + " seconds");
     }
 }

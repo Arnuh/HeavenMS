@@ -36,16 +36,34 @@ public final class ChangeChannelHandler extends AbstractMaplePacketHandler {
     @Override
     public final void handlePacket(SeekableLittleEndianAccessor slea, MapleClient c) {
         int channel = slea.readByte() + 1;
-        slea.readInt();
-        c.getPlayer().getAutobanManager().setTimestamp(6, Server.getInstance().getCurrentTimestamp(), 3);
-        if(c.getChannel() == channel) {
-                AutobanFactory.GENERAL.alert(c.getPlayer(), "CCing to same channel.");
-                c.disconnect(false, false);
-                return;
-        } else if (c.getPlayer().getCashShop().isOpened() || c.getPlayer().getMiniGame() != null || c.getPlayer().getPlayerShop() != null) {
-    		return;
-    	}
-        
-        c.changeChannel(channel);
+        int stam = channel * 10;
+        if (c.getPlayer().getEventInstance() == null) {
+            if (c.getPlayer().getTotalLevel() >= stam) {
+
+                long cooldown = 1000 * 10;
+                long curr = System.currentTimeMillis();
+                if (curr - c.getPlayer().getsavecooldown() >= cooldown) {
+                    slea.readInt();
+                    c.getPlayer().getAutobanManager().setTimestamp(6, Server.getInstance().getCurrentTimestamp(), 3);
+                    if (c.getChannel() == channel) {
+                        AutobanFactory.GENERAL.alert(c.getPlayer(), "CCing to same channel.");
+                        c.disconnect(false, false);
+                        return;
+                    } else if (c.getPlayer().getCashShop().isOpened() || c.getPlayer().getMiniGame() != null || c.getPlayer().getPlayerShop() != null) {
+                        return;
+                    }
+                    c.changeChannel(channel);
+                    //c.getPlayer().removeStamina(channel);
+                    c.getPlayer().setsavecooldown(System.currentTimeMillis());
+
+                } else {
+                    c.getPlayer().dropMessage(6, "Time until next available channel change " + ((long) (cooldown - (curr - c.getPlayer().getsavecooldown())) / 1000) + " seconds.");
+                }
+            } else {
+                c.getPlayer().dropMessage(6, "You must be at least level " + stam + " to access this channel.");
+            }
+        } else {
+            c.getPlayer().dropMessage(6, "Changing channels within an event is not allowed.");
+        }
     }
 }

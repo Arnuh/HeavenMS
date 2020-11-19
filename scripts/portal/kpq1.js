@@ -27,7 +27,7 @@ Kerning PQ: 2nd stage to 3rd stage portal
 function enter(pi) {
     var eim = pi.getPlayer().getEventInstance();
     var target = eim.getMapInstance(103000802);
-    if (eim.getProperty("2stageclear") != null) {
+    if (eim.getProperty("stageclear") == 2) {
         pi.playPortalSound();
         pi.getPlayer().changeMap(target, target.getPortal("st00"));
         return true;

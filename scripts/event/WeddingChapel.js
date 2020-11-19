@@ -71,7 +71,7 @@ function setEventRewards(eim) {
 
 function spawnCakeBoss(eim) {
         var mapObj = eim.getMapInstance(680000400);
-        var mobObj = Packages.server.life.MapleLifeFactory.getMonster(9400606);
+        var mobObj = Packages.server.life.MapleLifeFactory.getMonster(9400606, eim.getChannel());
 
         mapObj.spawnMonsterOnGroundBelow(mobObj, new Packages.java.awt.Point(777, -177));
 }

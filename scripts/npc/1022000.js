@@ -47,7 +47,7 @@ function start() {
     } else {
         if (cm.getJobId() == 0) {
             actionx["1stJob"] = true;
-            cm.sendNext("Do you want to become a #rwarrior#k? You need to meet some criteria in order to do so.#b You should be at least in level 10, and at least " + cm.getFirstJobStatRequirement(jobType) + "#k. Let's see...");   // thanks Vcoc for noticing a need to state and check requirements on first job adv starting message
+            cm.sendNext("Do you want to become a #rwarrior#k? You need to meet some criteria in order to do so.#b You should be at least in level 10#k. Let's see...");   // thanks Vcoc for noticing a need to state and check requirements on first job adv starting message
         } else if (cm.getLevel() >= 30 && cm.getJobId() == 100) {
             actionx["2ndJob"] = true;
             if (cm.haveItem(4031012))
@@ -184,7 +184,7 @@ function action(mode, type, selection) {
         } else if (status == 3){
             if (cm.haveItem(4031012))
                 cm.gainItem(4031012, -1);
-	    cm.completeQuest(100005);
+	    //cm.completeQuest(100005);
             
             if(job == 110) cm.sendNext("Alright, you have now become the #bFighter#k. A fighter strives to become the strongest of the strong, and never stops fighting. Don't ever lose that will to fight, and push forward 24/7. I'll help you become even stronger than you already are.");
             else if(job == 120) cm.sendNext("Alright, you have now become a #bPage#k! Pages have high intelligence and bravery, which I hope you'll employ throughout your journey to the right path. I'll help you become much stronger than you already are.");

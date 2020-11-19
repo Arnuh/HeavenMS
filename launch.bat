@@ -1,6 +1,5 @@
 @echo off
 @title HeavenMS
-set PATH=C:\Program Files\Java\jdk1.7.0_79\bin;%PATH%
-set CLASSPATH=.;dist\*
-java -Xmx2048m -Dwzpath=wz\ net.server.Server
+set CLASSPATH=.;nbdist\*
+C:\Progra~1\Java\jdk1.7.0_80\bin\java.exe -Xmx4G -XX:+UseConcMarkSweepGC -XX:+UseParNewGC -Dnet.sf.odinms.wzpath=wz/ net.server.Server
 pause

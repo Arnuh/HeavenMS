@@ -1,26 +1,27 @@
 /*
-	This file is part of the OdinMS Maple Story Server
-    Copyright (C) 2008 Patrick Huy <patrick.huy@frz.cc>
-		       Matthias Butz <matze@odinms.de>
-		       Jan Christian Meyer <vimes@odinms.de>
+ This file is part of the OdinMS Maple Story Server
+ Copyright (C) 2008 Patrick Huy <patrick.huy@frz.cc>
+ Matthias Butz <matze@odinms.de>
+ Jan Christian Meyer <vimes@odinms.de>
 
-    This program is free software: you can redistribute it and/or modify
-    it under the terms of the GNU Affero General Public License as
-    published by the Free Software Foundation version 3 as published by
-    the Free Software Foundation. You may not use, modify or distribute
-    this program under any other version of the GNU Affero General Public
-    License.
+ This program is free software: you can redistribute it and/or modify
+ it under the terms of the GNU Affero General Public License as
+ published by the Free Software Foundation version 3 as published by
+ the Free Software Foundation. You may not use, modify or distribute
+ this program under any other version of the GNU Affero General Public
+ License.
 
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU Affero General Public License for more details.
+ This program is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ GNU Affero General Public License for more details.
 
-    You should have received a copy of the GNU Affero General Public License
-    along with this program.  If not, see <http://www.gnu.org/licenses/>.
-*/
+ You should have received a copy of the GNU Affero General Public License
+ along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
 package client;
 
+import client.status.MonsterStatus;
 import constants.skills.Aran;
 import constants.skills.Archer;
 import constants.skills.Assassin;
@@ -58,6 +59,7 @@ import constants.skills.Marksman;
 import constants.skills.NightLord;
 import constants.skills.NightWalker;
 import constants.skills.Noblesse;
+import constants.skills.Outlaw;
 import constants.skills.Page;
 import constants.skills.Paladin;
 import constants.skills.Pirate;
@@ -75,6 +77,7 @@ import constants.skills.WindArcher;
 
 import java.io.File;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
 
 import provider.MapleData;
@@ -85,8 +88,10 @@ import provider.MapleDataProviderFactory;
 import provider.MapleDataTool;
 import server.MapleStatEffect;
 import server.life.Element;
+import tools.Pair;
 
 public class SkillFactory {
+
     private static Map<Integer, Skill> skills = new HashMap<>();
     private static MapleDataProvider datasource = MapleDataProviderFactory.getDataProvider(MapleDataProviderFactory.fileInWZPath("Skill.wz"));
 
@@ -99,7 +104,7 @@ public class SkillFactory {
 
     public static void loadAllSkills() {
         final MapleDataDirectoryEntry root = datasource.getRoot();
-        int skillid;    
+        int skillid;
         for (MapleDataFileEntry topDir : root.getFiles()) { // Loop thru jobs
             if (topDir.getName().length() <= 8) {
                 for (MapleData data : datasource.getData(topDir.getName())) { // Loop thru each jobs
@@ -115,7 +120,7 @@ public class SkillFactory {
             }
         }
     }
-    
+
     private static Skill loadFromData(int id, MapleData data) {
         Skill ret = new Skill(id);
         boolean isBuff = false;
@@ -134,7 +139,7 @@ public class SkillFactory {
         } else {
             MapleData action_ = data.getChildByPath("action");
             boolean action = false;
-	    if (action_ == null) {
+            if (action_ == null) {
                 if (data.getChildByPath("prepare/action") != null) {
                     action = true;
                 } else {
@@ -145,10 +150,10 @@ public class SkillFactory {
                             break;
                     }
                 }
-	    } else {
-	    	action = true;
-	    }
-	    ret.setAction(action);
+            } else {
+                action = true;
+            }
+            ret.setAction(action);
             MapleData hit = data.getChildByPath("hit");
             MapleData ball = data.getChildByPath("ball");
             isBuff = effect != null && hit == null && ball == null;
@@ -181,6 +186,10 @@ public class SkillFactory {
                 case NightWalker.VAMPIRE:
                 case ChiefBandit.CHAKRA:
                 case Evan.RECOVERY_AURA:
+                case Bishop.ANGEL_RAY:
+                case Bishop.BIG_BANG:
+                case ILArchMage.BIG_BANG:
+                case FPArchMage.BIG_BANG:
                     isBuff = false;
                     break;
                 case Beginner.RECOVERY:
@@ -241,14 +250,14 @@ public class SkillFactory {
                 case ILMage.SEAL:
                 case ILWizard.SLOW:
                 case ILMage.SPELL_BOOSTER:
-                case ILArchMage.HEROS_WILL:                
+                case ILArchMage.HEROS_WILL:
                 case ILArchMage.INFINITY:
                 case ILArchMage.MANA_REFLECTION:
                 case ILArchMage.MAPLE_WARRIOR:
                 case Cleric.INVINCIBLE:
                 case Cleric.BLESS:
                 case Priest.DISPEL:
-                case Priest.DOOM:
+                //case Priest.DOOM:
                 case Priest.HOLY_SYMBOL:
                 case Priest.MYSTIC_DOOR:
                 case Bishop.HEROS_WILL:
@@ -283,7 +292,7 @@ public class SkillFactory {
                 case Bandit.DAGGER_BOOSTER:
                 case Bandit.HASTE:
                 case ChiefBandit.MESO_GUARD:
-                case ChiefBandit.PICKPOCKET:              	
+                case ChiefBandit.PICKPOCKET:
                 case Shadower.HEROS_WILL:
                 case Shadower.MAPLE_WARRIOR:
                 case Shadower.NINJA_AMBUSH:
@@ -368,14 +377,27 @@ public class SkillFactory {
                 case Evan.MAGIC_RESISTANCE:
                 case Evan.MAGIC_SHIELD:
                 case Evan.SLOW:
+                //case FPArchMage.FIRE_DEMON:
+                //case ILArchMage.ICE_DEMON:
+                //summons
+                case Ranger.SILVER_HAWK:
+                case Sniper.GOLDEN_EAGLE:
+                case FPArchMage.ELQUINES:
+                case Marksman.FROST_PREY:
+                case Priest.SUMMON_DRAGON:
+                case Bowmaster.PHOENIX:
+                case ILArchMage.IFRIT:
+                case Bishop.BAHAMUT:
+                case Outlaw.GAVIOTA:
                     isBuff = true;
                     break;
             }
         }
 
         for (MapleData level : data.getChildByPath("level")) {
-            ret.addLevelEffect(MapleStatEffect.loadSkillEffectFromData(level, id, isBuff));
+            ret.addLevelEffect(MapleStatEffect.loadSkillEffectFromData(level, id, isBuff, Integer.parseInt(level.getName())));
         }
+
         ret.setAnimationTime(0);
         if (effect != null) {
             for (MapleData effectEntry : effect) {
@@ -395,8 +417,9 @@ public class SkillFactory {
         }
         if (data.getChildByPath(skill.toString()) != null) {
             for (MapleData skilldata : data.getChildByPath(skill.toString()).getChildren()) {
-                if (skilldata.getName().equals("name"))
+                if (skilldata.getName().equals("name")) {
                     return MapleDataTool.getString(skilldata, null);
+                }
             }
         }
 

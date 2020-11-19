@@ -44,7 +44,7 @@ public final class DamageSummonHandler extends AbstractMaplePacketHandler {
         if(mmo != null && mmo instanceof MapleSummon) {
             MapleSummon summon = (MapleSummon) mmo;
         
-            summon.addHP(-damage);
+            //summon.addHP(-damage);
             if (summon.getHP() <= 0) {
                 player.cancelEffectFromBuffStat(MapleBuffStat.PUPPET);
             }

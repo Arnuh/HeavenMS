@@ -66,7 +66,7 @@ function action(mode, type, selection) {
                                     var mapObj = cm.getMap();
                                     mapObj.toggleDrops();
                                     
-                                    var mobObj = Packages.server.life.MapleLifeFactory.getMonster(9400518);
+                                    var mobObj = Packages.server.life.MapleLifeFactory.getMonster(9400518, cm.getChannel());
                                     mapObj.spawnMonsterOnGroundBelow(mobObj, new Packages.java.awt.Point(-245, 810));
                                     
                                     cm.sendOk("The fierry appeared! Defeat it to get the #b#t4031596##k!");

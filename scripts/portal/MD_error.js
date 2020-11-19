@@ -23,39 +23,60 @@
 MiniDungeon - Critical Error
 */ 
 
+var level = 10;
+var minparty = 1;
+var maxparty = 6;
+var minraid = 1;
+var maxraid = 40;
+var event = "MD_event_error";
+
 var baseid = 261020300;
 var dungeonid = 261020301;
 var dungeons = 30;
 
 function enter(pi) {
     if (pi.getMapId() == baseid) {
-        if (pi.getParty() != null) {
-            if (pi.isLeader()) {
-                for (var i = 0; i < dungeons; i++) {
-                    if(pi.startDungeonInstance(dungeonid + i)) {
-                        pi.playPortalSound();
-                        pi.warpParty(dungeonid + i);
-                        return true;
+        var em = pi.getEventManager(event);
+        if (em != null) {
+            if (pi.getPlayer().isGroup()) {
+                if (pi.getPlayer().isLeader()) {
+                    var eli;
+                    if (pi.getPlayer().getParty() != null) {
+                        eli = em.getEligiblePartySrc(pi.getParty(), pi.getPlayer().getMapId(), level, 255, minparty, maxparty);
+                    } else if (pi.getPlayer().getRaid() != null) {
+                        eli = em.getEligibleRaidSrc(pi.getPlayer().getRaid(), pi.getPlayer().getMapId(), level, 255, minraid, maxraid);
+                    } else {
+                        pi.playerMessage(5, "Event has encountered an error");
+                        return false;
                     }
+                    if (eli.size() > 0) {
+                        if (!em.startPlayerInstance(pi.getPlayer(), 1)) {
+                            pi.playerMessage(5, "Someone is already attempting the PQ or your instance is currently being reseted. Try again in few seconds.");
+                        } else {
+                            pi.playPortalSound();
+                            return true;
+                        }
+                    } else {
+                        pi.playerMessage(5, "You cannot start this party quest yet, because either your party is not in the range size, some of your party members are not eligible to attempt it or they are not in this map. Minimum requirements are: Level 160+, 1+ Raid members.");
+                    }
+                } else {
+                    pi.playerMessage(5, "The leader of the party must be the to talk to me about joining the event.");
                 }
             } else {
-                pi.playerMessage(5, "Only solo or party leaders are supposed to enter the Mini-Dungeon.");
-                return false;
+            if (!em.startPlayerInstance(pi.getPlayer(), 1)) {
+                pi.playerMessage(5, "Someone is already attempting the PQ or your instance is currently being reseted. Try again in few seconds.");
+            } else {
+                pi.playPortalSound();
+                return true;
+            }
             }
         } else {
-            for (var i = 0; i < dungeons; i++) {
-                if(pi.startDungeonInstance(dungeonid + i)) {
-                    pi.playPortalSound();
-                    pi.warp(dungeonid + i);
-                    return true;
-                }
-            }
+            pi.playerMessage(5, "Event has already started, Please wait.");
         }
-        pi.playerMessage(5, "All of the Mini-Dungeons are in use right now, please try again later.");
         return false;
     } else {
-    	pi.playPortalSound();
-    	pi.warp(baseid, "MD00");
-    	return true;
+        pi.playPortalSound();
+        pi.warp(baseid, "MD00");
+        return true;
     }
 }

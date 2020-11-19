@@ -5,5 +5,5 @@ function start(ms){
 	var player = ms.getPlayer();
 	var map = player.getMap();
 
-	map.spawnMonsterOnGroundBelow(MapleLifeFactory.getMonster(mobId), new java.awt.Point(-28, -67));
+	map.spawnMonsterOnGroundBelow(MapleLifeFactory.getMonster(mobId, map.getChannelId()), new java.awt.Point(-28, -67));
 }

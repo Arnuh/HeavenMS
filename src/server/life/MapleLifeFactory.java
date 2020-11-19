@@ -21,6 +21,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 package server.life;
 
+import client.MapleCharacter;
 import java.awt.Point;
 import java.io.File;
 import java.util.ArrayList;
@@ -44,11 +45,11 @@ public class MapleLifeFactory {
     private static MapleData npcStringData = stringDataWZ.getData("Npc.img");
     private static Map<Integer, MapleMonsterStats> monsterStats = new HashMap<>();
 
-    public static AbstractLoadedMapleLife getLife(int id, String type) {
+    public static AbstractLoadedMapleLife getLife(int id, String type, int channel) {
         if (type.equalsIgnoreCase("n")) {
             return getNPC(id);
         } else if (type.equalsIgnoreCase("m")) {
-            return getMonster(id);
+            return getMonster(id, channel);
         } else {
             System.out.println("Unknown Life type: " + type);
             return null;
@@ -56,11 +57,12 @@ public class MapleLifeFactory {
     }
 
     private static class MobAttackInfoHolder {
+
         protected int attackPos;
         protected int mpCon;
         protected int coolTime;
         protected int animationTime;
-        
+
         protected MobAttackInfoHolder(int attackPos, int mpCon, int coolTime, int animationTime) {
             this.attackPos = attackPos;
             this.mpCon = mpCon;
@@ -68,28 +70,29 @@ public class MapleLifeFactory {
             this.animationTime = animationTime;
         }
     }
-    
+
     private static void setMonsterAttackInfo(int mid, List<MobAttackInfoHolder> attackInfos) {
         if (!attackInfos.isEmpty()) {
             MapleMonsterInformationProvider mi = MapleMonsterInformationProvider.getInstance();
 
             for (MobAttackInfoHolder attackInfo : attackInfos) {
-                mi.setMobAttackInfo(mid, attackInfo.attackPos, attackInfo.mpCon, attackInfo.coolTime);
+                //mi.setMobAttackInfo(mid, attackInfo.attackPos, attackInfo.mpCon, attackInfo.coolTime);
                 mi.setMobAttackAnimationTime(mid, attackInfo.attackPos, attackInfo.animationTime);
+                mi.setMobAttackInfo(mid, attackInfo.attackPos, attackInfo.mpCon, attackInfo.animationTime);
             }
         }
     }
-    
+
     private static Pair<MapleMonsterStats, List<MobAttackInfoHolder>> getMonsterStats(int mid) {
         MapleData monsterData = data.getData(StringUtil.getLeftPaddedStr(Integer.toString(mid) + ".img", '0', 11));
         if (monsterData == null) {
             return null;
         }
         MapleData monsterInfoData = monsterData.getChildByPath("info");
-        
+
         List<MobAttackInfoHolder> attackInfos = new LinkedList<>();
         MapleMonsterStats stats;
-        
+
         int linkMid = MapleDataTool.getIntConvert("link", monsterInfoData, 0);
         if (linkMid == 0) {
             stats = new MapleMonsterStats();
@@ -98,22 +101,21 @@ public class MapleLifeFactory {
             if (linkStats == null) {
                 return null;
             }
-            
+
             stats = linkStats.getLeft();
             attackInfos.addAll(linkStats.getRight());
         }
-
-        stats.setHp(MapleDataTool.getIntConvert("maxHP", monsterInfoData));
+        stats.setScale(Rank.getMobRank(mid));
+        stats.setLevel(Rank.getMobLevel(mid));
+        stats.setHp(1);
+        stats.setExp(0);
         stats.setFriendly(MapleDataTool.getIntConvert("damagedByMob", monsterInfoData, stats.isFriendly() ? 1 : 0) == 1);
         stats.setPADamage(MapleDataTool.getIntConvert("PADamage", monsterInfoData));
         stats.setPDDamage(MapleDataTool.getIntConvert("PDDamage", monsterInfoData));
         stats.setMADamage(MapleDataTool.getIntConvert("MADamage", monsterInfoData));
         stats.setMDDamage(MapleDataTool.getIntConvert("MDDamage", monsterInfoData));
-        stats.setMp(MapleDataTool.getIntConvert("maxMP", monsterInfoData, stats.getMp()));
-        stats.setExp(MapleDataTool.getIntConvert("exp", monsterInfoData, stats.getExp()));
-        stats.setLevel(MapleDataTool.getIntConvert("level", monsterInfoData));
+        stats.setMp(30000);
         stats.setRemoveAfter(MapleDataTool.getIntConvert("removeAfter", monsterInfoData, stats.removeAfter()));
-        stats.setBoss(MapleDataTool.getIntConvert("boss", monsterInfoData, stats.isBoss() ? 1 : 0) > 0);
         stats.setExplosiveReward(MapleDataTool.getIntConvert("explosiveReward", monsterInfoData, stats.isExplosiveReward() ? 1 : 0) > 0);
         stats.setFfaLoot(MapleDataTool.getIntConvert("publicReward", monsterInfoData, stats.isFfaLoot() ? 1 : 0) > 0);
         stats.setUndead(MapleDataTool.getIntConvert("undead", monsterInfoData, stats.isUndead() ? 1 : 0) > 0);
@@ -149,10 +151,9 @@ public class MapleLifeFactory {
         }
         stats.setFirstAttack(firstAttack > 0);
         stats.setDropPeriod(MapleDataTool.getIntConvert("dropItemPeriod", monsterInfoData, stats.getDropPeriod() / 10000) * 10000);
-
         stats.setTagColor(MapleDataTool.getIntConvert("hpTagColor", monsterInfoData, 0));
         stats.setTagBgColor(MapleDataTool.getIntConvert("hpTagBgcolor", monsterInfoData, 0));
-
+        stats.setBoss(MapleDataTool.getIntConvert(("boss"), monsterInfoData, 0) > 0);
         for (MapleData idata : monsterData) {
             if (!idata.getName().equals("info")) {
                 int delay = 0;
@@ -206,9 +207,9 @@ public class MapleLifeFactory {
                 animationTime += MapleDataTool.getIntConvert("delay", effectEntry, 0);
             }
 
-            int mpCon = MapleDataTool.getIntConvert("info/conMP", monsterAttackData, 0);
-            int coolTime = MapleDataTool.getIntConvert("info/attackAfter", monsterAttackData, 0);
-            attackInfos.add(new MobAttackInfoHolder(i, mpCon, coolTime, animationTime));
+            //int mpCon = MapleDataTool.getIntConvert("info/conMP", monsterAttackData, 0);
+            //int coolTime = MapleDataTool.getIntConvert("info/attackAfter", monsterAttackData, 0);
+            attackInfos.add(new MobAttackInfoHolder(i, 0, 1000, animationTime));
             i++;
         }
 
@@ -216,7 +217,7 @@ public class MapleLifeFactory {
         if (banishData != null) {
             stats.setBanishInfo(new BanishInfo(MapleDataTool.getString("banMsg", banishData), MapleDataTool.getInt("banMap/0/field", banishData, -1), MapleDataTool.getString("banMap/0/portal", banishData, "sp")));
         }
-        
+
         int noFlip = MapleDataTool.getInt("noFlip", monsterInfoData, 0);
         if (noFlip > 0) {
             Point origin = MapleDataTool.getPoint("stand/0/origin", monsterData, null);
@@ -224,30 +225,226 @@ public class MapleLifeFactory {
                 stats.setFixedStance(origin.getX() < 1 ? 5 : 4);    // fixed left/right
             }
         }
-        
+
         return new Pair<>(stats, attackInfos);
     }
-    
-    public static MapleMonster getMonster(int mid) {
+
+    public static MapleMonster getMonster(int mid, int channel) {
         try {
             MapleMonsterStats stats = monsterStats.get(Integer.valueOf(mid));
             if (stats == null) {
                 Pair<MapleMonsterStats, List<MobAttackInfoHolder>> mobStats = getMonsterStats(mid);
                 stats = mobStats.getLeft();
                 setMonsterAttackInfo(mid, mobStats.getRight());
-                
+
                 monsterStats.put(Integer.valueOf(mid), stats);
             }
-            MapleMonster ret = new MapleMonster(mid, stats);
-            return ret;
-        } catch(NullPointerException npe) {
+            return new MapleMonster(mid, stats, -1, channel, -1, true, true, null);
+        } catch (NullPointerException npe) {
             System.out.println("[SEVERE] MOB " + mid + " failed to load. Issue: " + npe.getMessage() + "\n\n");
-            npe.printStackTrace();
-            
+            //npe.printStackTrace();
             return null;
         }
     }
-    
+
+    public static MapleMonster getMonsterOwner(int mid, MapleCharacter chr) {
+        try {
+            MapleMonsterStats stats = monsterStats.get(Integer.valueOf(mid));
+            if (stats == null) {
+                Pair<MapleMonsterStats, List<MobAttackInfoHolder>> mobStats = getMonsterStats(mid);
+                stats = mobStats.getLeft();
+                setMonsterAttackInfo(mid, mobStats.getRight());
+
+                monsterStats.put(Integer.valueOf(mid), stats);
+            }
+            return new MapleMonster(mid, stats, -1, 1, -1, true, true, chr);
+        } catch (NullPointerException npe) {
+            System.out.println("[SEVERE] MOB " + mid + " failed to load. Issue: " + npe.getMessage() + "\n\n");
+            //npe.printStackTrace();
+            return null;
+        }
+    }
+
+    public static MapleMonster getMonsterLink(int mid, int channel, Boolean link) {
+        try {
+            MapleMonsterStats stats = monsterStats.get(Integer.valueOf(mid));
+            if (stats == null) {
+                Pair<MapleMonsterStats, List<MobAttackInfoHolder>> mobStats = getMonsterStats(mid);
+                stats = mobStats.getLeft();
+                setMonsterAttackInfo(mid, mobStats.getRight());
+
+                monsterStats.put(Integer.valueOf(mid), stats);
+            }
+            return new MapleMonster(mid, stats, -1, channel, -1, true, link, null);
+        } catch (NullPointerException npe) {
+            System.out.println("[SEVERE] MOB " + mid + " failed to load. Issue: " + npe.getMessage() + "\n\n");
+            //npe.printStackTrace();
+            return null;
+        }
+    }
+
+    public static MapleMonster getMonsterRankLink(int mid, int channel, int rank, Boolean link) {
+        try {
+            MapleMonsterStats stats = monsterStats.get(Integer.valueOf(mid));
+            if (stats == null) {
+                Pair<MapleMonsterStats, List<MobAttackInfoHolder>> mobStats = getMonsterStats(mid);
+                stats = mobStats.getLeft();
+                setMonsterAttackInfo(mid, mobStats.getRight());
+
+                monsterStats.put(Integer.valueOf(mid), stats);
+            }
+            return new MapleMonster(mid, stats, -1, channel, rank, true, link, null);
+        } catch (NullPointerException npe) {
+            System.out.println("[SEVERE] MOB " + mid + " failed to load. Issue: " + npe.getMessage() + "\n\n");
+            //npe.printStackTrace();
+            return null;
+        }
+    }
+
+    public static MapleMonster getMonsterCustomRank(int mid, int channel, int scale) {
+        try {
+            MapleMonsterStats stats = monsterStats.get(Integer.valueOf(mid));
+            if (stats == null) {
+                Pair<MapleMonsterStats, List<MobAttackInfoHolder>> mobStats = getMonsterStats(mid);
+                stats = mobStats.getLeft();
+                setMonsterAttackInfo(mid, mobStats.getRight());
+
+                monsterStats.put(Integer.valueOf(mid), stats);
+            }
+            return new MapleMonster(mid, stats, -1, channel, scale, true, true, null);
+        } catch (NullPointerException npe) {
+            System.out.println("[SEVERE] MOB " + mid + " failed to load. Issue: " + npe.getMessage() + "\n\n");
+            //npe.printStackTrace();
+            return null;
+        }
+    }
+
+    public static MapleMonster getMonsterCustomRank(int mid, int channel, int scale, boolean link) {
+        try {
+            MapleMonsterStats stats = monsterStats.get(Integer.valueOf(mid));
+            if (stats == null) {
+                Pair<MapleMonsterStats, List<MobAttackInfoHolder>> mobStats = getMonsterStats(mid);
+                stats = mobStats.getLeft();
+                setMonsterAttackInfo(mid, mobStats.getRight());
+
+                monsterStats.put(Integer.valueOf(mid), stats);
+            }
+            return new MapleMonster(mid, stats, -1, channel, scale, true, link, null);
+        } catch (NullPointerException npe) {
+            System.out.println("[SEVERE] MOB " + mid + " failed to load. Issue: " + npe.getMessage() + "\n\n");
+            //npe.printStackTrace();
+            return null;
+        }
+    }
+
+    public static MapleMonster getMonsterByLevel(int mid, int level) {
+        try {
+            MapleMonsterStats stats = monsterStats.get(Integer.valueOf(mid));
+            if (stats == null) {
+                Pair<MapleMonsterStats, List<MobAttackInfoHolder>> mobStats = getMonsterStats(mid);
+                stats = mobStats.getLeft();
+                setMonsterAttackInfo(mid, mobStats.getRight());
+
+                monsterStats.put(Integer.valueOf(mid), stats);
+            }
+            return new MapleMonster(mid, stats, level, 1, -1, true, true, null);
+        } catch (NullPointerException npe) {
+            System.out.println("[SEVERE] MOB " + mid + " failed to load. Issue: " + npe.getMessage() + "\n\n");
+            //npe.printStackTrace();
+            return null;
+        }
+    }
+
+    public static MapleMonster getMonsterByLevel(int mid, int level, int scale) {
+        try {
+            MapleMonsterStats stats = monsterStats.get(Integer.valueOf(mid));
+            if (stats == null) {
+                Pair<MapleMonsterStats, List<MobAttackInfoHolder>> mobStats = getMonsterStats(mid);
+                stats = mobStats.getLeft();
+                setMonsterAttackInfo(mid, mobStats.getRight());
+
+                monsterStats.put(Integer.valueOf(mid), stats);
+            }
+            return new MapleMonster(mid, stats, level, 1, scale, true, true, null);
+        } catch (NullPointerException npe) {
+            System.out.println("[SEVERE] MOB " + mid + " failed to load. Issue: " + npe.getMessage() + "\n\n");
+            //npe.printStackTrace();
+            return null;
+        }
+    }
+
+    public static MapleMonster getMonsterByLevelLink(int mid, int level, int scale, boolean link) {
+        try {
+            MapleMonsterStats stats = monsterStats.get(Integer.valueOf(mid));
+            if (stats == null) {
+                Pair<MapleMonsterStats, List<MobAttackInfoHolder>> mobStats = getMonsterStats(mid);
+                stats = mobStats.getLeft();
+                setMonsterAttackInfo(mid, mobStats.getRight());
+
+                monsterStats.put(Integer.valueOf(mid), stats);
+            }
+            return new MapleMonster(mid, stats, level, 1, scale, true, link, null);
+        } catch (NullPointerException npe) {
+            System.out.println("[SEVERE] MOB " + mid + " failed to load. Issue: " + npe.getMessage() + "\n\n");
+            //npe.printStackTrace();
+            return null;
+        }
+    }
+
+    public static MapleMonster getMonsterByLevel(int mid, int level, int scale, boolean xp) {
+        try {
+            MapleMonsterStats stats = monsterStats.get(Integer.valueOf(mid));
+            if (stats == null) {
+                Pair<MapleMonsterStats, List<MobAttackInfoHolder>> mobStats = getMonsterStats(mid);
+                stats = mobStats.getLeft();
+                setMonsterAttackInfo(mid, mobStats.getRight());
+
+                monsterStats.put(Integer.valueOf(mid), stats);
+            }
+            return new MapleMonster(mid, stats, level, 1, scale, xp, true, null);
+        } catch (NullPointerException npe) {
+            System.out.println("[SEVERE] MOB " + mid + " failed to load. Issue: " + npe.getMessage() + "\n\n");
+            //npe.printStackTrace();
+            return null;
+        }
+    }
+
+    public static MapleMonster getMonsterByLevelByChan(int mid, int level, int scale, int ch, boolean xp) {
+        try {
+            MapleMonsterStats stats = monsterStats.get(Integer.valueOf(mid));
+            if (stats == null) {
+                Pair<MapleMonsterStats, List<MobAttackInfoHolder>> mobStats = getMonsterStats(mid);
+                stats = mobStats.getLeft();
+                setMonsterAttackInfo(mid, mobStats.getRight());
+
+                monsterStats.put(Integer.valueOf(mid), stats);
+            }
+            return new MapleMonster(mid, stats, level, ch, scale, xp, true, null);
+        } catch (NullPointerException npe) {
+            System.out.println("[SEVERE] MOB " + mid + " failed to load. Issue: " + npe.getMessage() + "\n\n");
+            //npe.printStackTrace();
+            return null;
+        }
+    }
+
+    public static MapleMonster getMonsterByLevelByChanLink(int mid, int level, int scale, int ch, boolean xp, boolean link) {
+        try {
+            MapleMonsterStats stats = monsterStats.get(Integer.valueOf(mid));
+            if (stats == null) {
+                Pair<MapleMonsterStats, List<MobAttackInfoHolder>> mobStats = getMonsterStats(mid);
+                stats = mobStats.getLeft();
+                setMonsterAttackInfo(mid, mobStats.getRight());
+
+                monsterStats.put(Integer.valueOf(mid), stats);
+            }
+            return new MapleMonster(mid, stats, level, ch, scale, xp, link, null);
+        } catch (NullPointerException npe) {
+            System.out.println("[SEVERE] MOB " + mid + " failed to load. Issue: " + npe.getMessage() + "\n\n");
+            //npe.printStackTrace();
+            return null;
+        }
+    }
+
     public static int getMonsterLevel(int mid) {
         try {
             MapleMonsterStats stats = monsterStats.get(Integer.valueOf(mid));
@@ -261,11 +458,32 @@ public class MapleLifeFactory {
             } else {
                 return stats.getLevel();
             }
-        } catch(NullPointerException npe) {
+        } catch (NullPointerException npe) {
             System.out.println("[SEVERE] MOB " + mid + " failed to load. Issue: " + npe.getMessage() + "\n\n");
             npe.printStackTrace();
         }
-        
+
+        return -1;
+    }
+
+    public static int getBombDamage(int mid) {
+        try {
+            MapleMonsterStats stats = monsterStats.get(Integer.valueOf(mid));
+            if (stats == null) {
+                MapleData monsterData = data.getData(StringUtil.getLeftPaddedStr(Integer.toString(mid) + ".img", '0', 11));
+                if (monsterData == null) {
+                    return -1;
+                }
+                MapleData monsterInfoData = monsterData.getChildByPath("info");
+                return MapleDataTool.getIntConvert("PADamage", monsterInfoData);
+            } else {
+                return stats.getPADamage();
+            }
+        } catch (NullPointerException npe) {
+            System.out.println("[SEVERE] MOB " + mid + " failed to load. Issue: " + npe.getMessage() + "\n\n");
+            npe.printStackTrace();
+        }
+
         return -1;
     }
 
@@ -278,7 +496,7 @@ public class MapleLifeFactory {
     public static MapleNPC getNPC(int nid) {
         return new MapleNPC(nid, new MapleNPCStats(MapleDataTool.getString(nid + "/name", npcStringData, "MISSINGNO")));
     }
-    
+
     public static String getNPCDefaultTalk(int nid) {
         return MapleDataTool.getString(nid + "/d0", npcStringData, "(...)");
     }
@@ -346,7 +564,7 @@ public class MapleLifeFactory {
         public int getHp() {
             return hp;
         }
-        
+
         public byte getAction() {
             return action;
         }

@@ -185,7 +185,8 @@ function action(mode, type, selection) {
         } else if (status == 3){
             if (cm.haveItem(4031012))
                 cm.gainItem(4031012, -1);
-	    cm.completeQuest(100011);
+                //if(!isQuestCompleted(100011)) cm.completeQuest(100011);
+	
             
             if(job == 410) cm.sendNext("Alright, from here on out you are the #bAssassin#k. Assassins have quick hands and quicker feets to dominate the enemies. Please keep training. I'll make you even more powerful than you are right now!");
             else cm.sendNext("Alright, you're the #bBandit from here on out. Bandits revel in shadows and darkness, waiting until the right time comes for them to stick a dagger through the enemy's hearth, suddenly and swiftly... please keep training. I'll make you even more powerful than you are right now.");

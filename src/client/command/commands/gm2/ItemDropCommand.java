@@ -55,7 +55,7 @@ public class ItemDropCommand extends Command {
             return;
         }
 
-        short quantity = 1;
+        int quantity = 1;
         if(params.length >= 2) quantity = Short.parseShort(params[1]);
 
         if (ServerConstants.BLOCK_GENERATE_CASH_ITEM && ii.isCash(itemId)) {

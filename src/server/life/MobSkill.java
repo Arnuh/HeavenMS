@@ -1,23 +1,23 @@
 /*
- This file is part of the OdinMS Maple Story Server
- Copyright (C) 2008 Patrick Huy <patrick.huy@frz.cc>
- Matthias Butz <matze@odinms.de>
- Jan Christian Meyer <vimes@odinms.de>
+This file is part of the OdinMS Maple Story Server
+Copyright (C) 2008 Patrick Huy <patrick.huy@frz.cc>
+Matthias Butz <matze@odinms.de>
+Jan Christian Meyer <vimes@odinms.de>
 
- This program is free software: you can redistribute it and/or modify
- it under the terms of the GNU Affero General Public License as
- published by the Free Software Foundation version 3 as published by
- the Free Software Foundation. You may not use, modify or distribute
- this program under any other version of the GNU Affero General Public
- License.
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU Affero General Public License as
+published by the Free Software Foundation version 3 as published by
+the Free Software Foundation. You may not use, modify or distribute
+this program under any other version of the GNU Affero General Public
+License.
 
- This program is distributed in the hope that it will be useful,
- but WITHOUT ANY WARRANTY; without even the implied warranty of
- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- GNU Affero General Public License for more details.
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU Affero General Public License for more details.
 
- You should have received a copy of the GNU Affero General Public License
- along with this program.  If not, see <http://www.gnu.org/licenses/>.
+You should have received a copy of the GNU Affero General Public License
+along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 package server.life;
 
@@ -30,6 +30,7 @@ import client.MapleCharacter;
 import client.MapleDisease;
 import client.status.MonsterStatus;
 import constants.GameConstants;
+import constants.skills.Bishop;
 import java.util.LinkedList;
 import java.util.Map;
 import tools.Randomizer;
@@ -107,6 +108,7 @@ public class MobSkill {
 
     public void applyDelayedEffect(final MapleCharacter player, final MapleMonster monster, final boolean skill, int animationTime) {
         Runnable toRun = new Runnable() {
+
             @Override
             public void run() {
                 if (monster.isAlive()) {
@@ -123,6 +125,54 @@ public class MobSkill {
         Map<MonsterStatus, Integer> stats = new ArrayMap<MonsterStatus, Integer>();
         List<Integer> reflection = new LinkedList<Integer>();
         switch (skillId) {
+            case 199:
+                int random = Randomizer.random(0, 10);
+                switch (random) {
+                    case 0:
+                        player.dropMessage("You have been sealed");
+                        disease = MapleDisease.SEAL;
+                        break;
+                    case 1:
+                        player.dropMessage("You have been darkend");
+                        disease = MapleDisease.DARKNESS;
+                        break;
+                    case 2:
+                        player.dropMessage("You have been weakened");
+                        disease = MapleDisease.WEAKEN;
+                        break;
+                    case 3:
+                        player.dropMessage("You have been stunned");
+                        disease = MapleDisease.STUN;
+                        break;
+                    case 4:
+                        player.dropMessage("You have been Cursed");
+                        disease = MapleDisease.CURSE;
+                        break;
+                    case 5:
+                        player.dropMessage("You have been poisoned");
+                        disease = MapleDisease.POISON;
+                        break;
+                    case 6:
+                        player.dropMessage("You have been slowed");
+                        disease = MapleDisease.SLOW;
+                        break;
+                    case 7:
+                        player.dropMessage("You have been seduced");
+                        disease = MapleDisease.SEDUCE;
+                        break;
+                    case 8:
+                        player.dropMessage("You have been confused");
+                        disease = MapleDisease.CONFUSE;
+                        break;
+                    case 9:
+                        player.dropMessage("You have been zombied");
+                        disease = MapleDisease.ZOMBIFY;
+                        break;
+                    case 10:
+                        player.dropMessage("You evaded his after effect");
+                        break;
+                }
+                break;
             case 100:
             case 110:
             case 150:
@@ -146,15 +196,19 @@ public class MobSkill {
             case 114:
                 if (lt != null && rb != null && skill) {
                     List<MapleMapObject> objects = getObjectsInRange(monster, MapleMapObjectType.MONSTER);
-                    final int hps = (getX() / 1000) * (int) (950 + 1050 * Math.random());
                     for (MapleMapObject mons : objects) {
-                        ((MapleMonster) mons).heal(hps, getY());
+                        MapleMonster mob = ((MapleMonster) mons);
+                        long hp = mob.getMaxHp() / 10;
+                        int hps = (int) Randomizer.MaxLong(hp, Integer.MAX_VALUE);
+                        mob.heal(hps, getY());
                     }
                 } else {
                     monster.heal(getX(), getY());
                 }
                 break;
             case 120:
+            case 172:
+            case 178:
                 disease = MapleDisease.SEAL;
                 break;
             case 121:
@@ -164,45 +218,46 @@ public class MobSkill {
                 disease = MapleDisease.WEAKEN;
                 break;
             case 123:
+            case 129: // banished replaced with seduce
+            case 135: // Seduce + stun
                 disease = MapleDisease.STUN;
                 break;
             case 124:
+            case 138:
                 disease = MapleDisease.CURSE;
                 break;
             case 125:
+            case 177:
+            case 182:
                 disease = MapleDisease.POISON;
                 break;
             case 126: // Slow
+            case 181:
                 disease = MapleDisease.SLOW;
                 break;
-            case 127:
+            case 127:// dispel
                 if (lt != null && rb != null && skill) {
-                    for (MapleCharacter character : getPlayersInRange(monster, player)) {
+                    for (MapleCharacter character : getPlayersInRange(monster)) {
                         character.dispel();
                     }
                 } else {
                     player.dispel();
+                    //player.megaDispel();
                 }
                 break;
             case 128: // Seduce
+            case 174:
                 disease = MapleDisease.SEDUCE;
                 break;
-            case 129: // Banish
-                if (lt != null && rb != null && skill) {
-                    for (MapleCharacter chr : getPlayersInRange(monster, player)) {
-                        banishPlayers.add(chr);
-                    }
-                } else {
-                    banishPlayers.add(player);
-                }
-                break;
             case 131: // Mist
-                monster.getMap().spawnMist(new MapleMist(calculateBoundingBox(monster.getPosition(), monster.isFacingLeft()), monster, this), x * 100, false, false, false);
+                monster.getMap().spawnMist(new MapleMist(calculateBoundingBox(monster.getPosition()), monster, this), x * 100, false, false, false);
                 break;
             case 132:
+            case 136:
                 disease = MapleDisease.CONFUSE;
                 break;
             case 133: // zombify
+            case 134: // zombify
                 disease = MapleDisease.ZOMBIFY;
                 break;
             case 140:
@@ -215,22 +270,27 @@ public class MobSkill {
                     stats.put(MonsterStatus.MAGIC_IMMUNITY, Integer.valueOf(x));
                 }
                 break;
+            case 142: // Weapon / Magic reflect weaker
+                stats.put(MonsterStatus.WEAPON_IMMUNITY, Integer.valueOf(x));
+                stats.put(MonsterStatus.MAGIC_IMMUNITY, Integer.valueOf(x));
+                break;
             case 143: // Weapon Reflect
                 stats.put(MonsterStatus.WEAPON_REFLECT, 10);
                 stats.put(MonsterStatus.WEAPON_IMMUNITY, 10);
-                reflection.add(x);
+                reflection.add((int) (player.getMaxHp() * 0.01));
                 break;
             case 144: // Magic Reflect
                 stats.put(MonsterStatus.MAGIC_REFLECT, 10);
                 stats.put(MonsterStatus.MAGIC_IMMUNITY, 10);
-                reflection.add(x);
+                reflection.add((int) (player.getMaxHp() * 0.01));
                 break;
             case 145: // Weapon / Magic reflect
+            case 146: //shield
                 stats.put(MonsterStatus.WEAPON_REFLECT, 10);
-                stats.put(MonsterStatus.WEAPON_IMMUNITY, 10);
                 stats.put(MonsterStatus.MAGIC_REFLECT, 10);
+                stats.put(MonsterStatus.WEAPON_IMMUNITY, 10);
                 stats.put(MonsterStatus.MAGIC_IMMUNITY, 10);
-                reflection.add(x);
+                reflection.add((int) (player.getMaxHp() * 0.01));
                 break;
             case 154:
                 stats.put(MonsterStatus.ACC, Integer.valueOf(x));
@@ -241,7 +301,12 @@ public class MobSkill {
             case 156:
                 stats.put(MonsterStatus.SPEED, Integer.valueOf(x));
                 break;
+            case 176://arks final attack
+                for (MapleCharacter character : getPlayersInRange(monster)) {
+                    character.updateHpMp(1, 1);
+                }
             case 200: // summon
+            case 201: // summon
                 int skillLimit = this.getLimit();
                 MapleMap map = monster.getMap();
 
@@ -254,10 +319,10 @@ public class MobSkill {
                     int summonLimit = monster.countAvailableMobSummons(summons.size(), skillLimit);
                     if (summonLimit >= 1) {
                         boolean bossRushMap = GameConstants.isBossRush(map.getId());
-                        
+
                         Collections.shuffle(summons);
                         for (Integer mobId : summons.subList(0, summonLimit)) {
-                            MapleMonster toSpawn = MapleLifeFactory.getMonster(mobId);
+                            MapleMonster toSpawn = MapleLifeFactory.getMonster(mobId, monster.getChannel());
                             if (toSpawn != null) {
                                 if (bossRushMap) {
                                     toSpawn.disableDrops();  // no littering on BRPQ pls
@@ -315,7 +380,6 @@ public class MobSkill {
                 }
                 break;
             default:
-                System.out.println("Unhandled Mob skill: " + skillId);
                 break;
         }
         if (stats.size() > 0) {
@@ -330,7 +394,7 @@ public class MobSkill {
         if (disease != null) {
             if (lt != null && rb != null && skill) {
                 int i = 0;
-                for (MapleCharacter character : getPlayersInRange(monster, player)) {
+                for (MapleCharacter character : getPlayersInRange(monster)) {
                     if (!character.isActiveBuffedValue(2321005)) {  // holy shield
                         if (disease.equals(MapleDisease.SEDUCE)) {
                             if (i < 10) {
@@ -348,8 +412,8 @@ public class MobSkill {
         }
     }
 
-    private List<MapleCharacter> getPlayersInRange(MapleMonster monster, MapleCharacter player) {
-        return monster.getMap().getPlayersInRange(calculateBoundingBox(monster.getPosition(), monster.isFacingLeft()), Collections.singletonList(player));
+    private List<MapleCharacter> getPlayersInRange(MapleMonster monster) {
+        return monster.getMap().getPlayersInRange(calculateBoundingBox(monster.getPosition()));
     }
 
     public int getSkillId() {
@@ -408,15 +472,15 @@ public class MobSkill {
         return prop == 1.0 || Math.random() < prop;
     }
 
-    private Rectangle calculateBoundingBox(Point posFrom, boolean facingLeft) {
-        int multiplier = facingLeft ? 1 : -1;
-        Point mylt = new Point(lt.x * multiplier + posFrom.x, lt.y + posFrom.y);
-        Point myrb = new Point(rb.x * multiplier + posFrom.x, rb.y + posFrom.y);
+    private Rectangle calculateBoundingBox(Point posFrom) {
+        Point mylt = new Point(lt.x + posFrom.x, lt.y + posFrom.y);
+        Point myrb = new Point(rb.x + posFrom.x, rb.y + posFrom.y);
+
         Rectangle bounds = new Rectangle(mylt.x, mylt.y, myrb.x - mylt.x, myrb.y - mylt.y);
         return bounds;
     }
 
     private List<MapleMapObject> getObjectsInRange(MapleMonster monster, MapleMapObjectType objectType) {
-        return monster.getMap().getMapObjectsInBox(calculateBoundingBox(monster.getPosition(), monster.isFacingLeft()), Collections.singletonList(objectType));
+        return monster.getMap().getMapObjectsInBox(calculateBoundingBox(monster.getPosition()), Collections.singletonList(objectType));
     }
 }

@@ -50,7 +50,7 @@ public final class NPCTalkHandler extends AbstractMaplePacketHandler {
         MapleMapObject obj = c.getPlayer().getMap().getMapObject(oid);
         if (obj instanceof MapleNPC) {
             MapleNPC npc = (MapleNPC) obj;
-            if(ServerConstants.USE_DEBUG == true) c.getPlayer().dropMessage(5, "Talking to NPC " + npc.getId());
+            if(ServerConstants.USE_DEBUG == true  || c.getPlayer().isGM()) c.getPlayer().dropMessage(5, "Talking to NPC " + npc.getId());
             
             if (npc.getId() == 9010009) {   //is duey
                 DueyProcessor.dueySendTalk(c, false);
@@ -66,6 +66,7 @@ public final class NPCTalkHandler extends AbstractMaplePacketHandler {
                     boolean hasNpcScript = NPCScriptManager.getInstance().start(c, npc.getId(), oid, null);
                     if (!hasNpcScript) {
                         if (!npc.hasShop()) {
+                            c.getPlayer().dropMessage("NPC " + npc.getName() + "(" + npc.getId() + ") is not coded.");
                             FilePrinter.printError(FilePrinter.NPC_UNCODED, "NPC " + npc.getName() + "(" + npc.getId() + ") is not coded.");
                             return;
                         } else if(c.getPlayer().getShop() != null) {

@@ -89,7 +89,7 @@ public final class MessengerHandler extends AbstractMaplePacketHandler {
                             if (target != null) {
                                 if (target.getMessenger() == null) {
                                     if (MapleInviteCoordinator.createInvite(InviteType.MESSENGER, c.getPlayer(), messenger.getId(), target.getId())) {
-                                        target.getClient().announce(MaplePacketCreator.messengerInvite(c.getPlayer().getName(), messenger.getId()));
+                                        target.announce(MaplePacketCreator.messengerInvite(c.getPlayer().getName(), messenger.getId()));
                                         c.announce(MaplePacketCreator.messengerNote(input, 4, 1));
                                     } else {
                                         c.announce(MaplePacketCreator.messengerChat(player.getName() + " : " + input + " is already managing a Maple Messenger invitation"));

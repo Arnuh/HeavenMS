@@ -45,8 +45,8 @@ public final class MobDamageMobFriendlyHandler extends AbstractMaplePacketHandle
 		if (monster == null || c.getPlayer().getMap().getMonsterByOid(attacker) == null) {
 			return;
 		}
-
-		int damage = Randomizer.nextInt(((monster.getMaxHp() / 13 + monster.getPADamage() * 10)) * 2 + 500) / 10; //Beng's formula.
+                int hp = (int) (monster.getMaxHp() > Integer.MAX_VALUE ? Integer.MAX_VALUE : monster.getMaxHp());
+		int damage = Randomizer.nextInt(((hp / 13 + monster.getPADamage() * 10)) * 2 + 500) / 10; //Beng's formula.
                 
                 if (monster.getHp() - damage < 1) {     // friendly dies
                         if(monster.getId() == 9300102) {
@@ -74,7 +74,7 @@ public final class MobDamageMobFriendlyHandler extends AbstractMaplePacketHandle
                 }
                 
                 monster.applyAndGetHpDamage(damage, false);
-                int remainingHp = monster.getHp();
+                long remainingHp = monster.getHp();
                 if(remainingHp <= 0) {
                     remainingHp = 0;
                     monster.getMap().removeMapObject(monster);

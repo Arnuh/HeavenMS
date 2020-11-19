@@ -42,7 +42,7 @@ public final class FamilyAddHandler extends AbstractMaplePacketHandler {
         String toAdd = slea.readMapleAsciiString();
         MapleCharacter addChr = c.getChannelServer().getPlayerStorage().getCharacterByName(toAdd);
         if (addChr != null) {
-            addChr.getClient().announce(MaplePacketCreator.sendFamilyInvite(c.getPlayer().getId(), toAdd));
+            addChr.announce(MaplePacketCreator.sendFamilyInvite(c.getPlayer().getId(), toAdd));
             c.getPlayer().dropMessage("The invite has been sent.");
         } else {
             c.getPlayer().dropMessage("The player cannot be found!");

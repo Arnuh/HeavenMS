@@ -20,9 +20,9 @@
 */
 
 var inMap = new Array(540000000, 550000000, 551000000);
-var toMap = new Array(550000000, new Array(551000000, 541000000), 550000000);
-var cost = new Array(42000, new Array(10000, 0), 10000);
-var toMapSp = new Array(0, new Array(2, 4), 4);
+var toMap = new Array(550000000, new Array(551000000, 541000000, 541000000), 550000000);
+var cost = new Array(42000, new Array(10000, 0, 10000), 10000);
+var toMapSp = new Array(0, new Array(2, 4, 0), 4);
 
 var location;
 var text;

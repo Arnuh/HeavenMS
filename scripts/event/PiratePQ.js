@@ -118,10 +118,10 @@ function setup(level, lobbyid) {
 	map.resetPQ(level);
         map.shuffleReactors();
 	for (var i = 0; i < 5; i++) {
-		var mob = em.getMonster(9300124);
-		var mob2 = em.getMonster(9300125);
-		var mob3 = em.getMonster(9300124);
-		var mob4 = em.getMonster(9300125);
+		var mob = em.getMonster(9300124, eim.getChannel());
+		var mob2 = em.getMonster(9300125, eim.getChannel());
+		var mob3 = em.getMonster(9300124, eim.getChannel());
+		var mob4 = em.getMonster(9300125, eim.getChannel());
 		eim.registerMonster(mob);
 		eim.registerMonster(mob2);
 		eim.registerMonster(mob3);
@@ -138,8 +138,8 @@ function setup(level, lobbyid) {
 	map = eim.getInstanceMap(925100201);
 	map.resetPQ(level);
 	for (var i = 0; i < 10; i++) {
-		var mob = em.getMonster(9300112);
-		var mob2 = em.getMonster(9300113);
+		var mob = em.getMonster(9300112, eim.getChannel());
+		var mob2 = em.getMonster(9300113, eim.getChannel());
 		eim.registerMonster(mob);
 		eim.registerMonster(mob2);
 		mob.changeDifficulty(level,isPq);
@@ -152,10 +152,10 @@ function setup(level, lobbyid) {
 	map.resetPQ(level);
         map.shuffleReactors();
 	for (var i = 0; i < 5; i++) {
-		var mob = em.getMonster(9300124);
-		var mob2 = em.getMonster(9300125);
-		var mob3 = em.getMonster(9300124);
-		var mob4 = em.getMonster(9300125);
+		var mob = em.getMonster(9300124, eim.getChannel());
+		var mob2 = em.getMonster(9300125, eim.getChannel());
+		var mob3 = em.getMonster(9300124, eim.getChannel());
+		var mob4 = em.getMonster(9300125, eim.getChannel());
 		eim.registerMonster(mob);
 		eim.registerMonster(mob2);
 		eim.registerMonster(mob3);
@@ -172,8 +172,8 @@ function setup(level, lobbyid) {
 	map = eim.getInstanceMap(925100301);
 	map.resetPQ(level);
 	for (var i = 0; i < 10; i++) {
-		var mob = em.getMonster(9300112);
-		var mob2 = em.getMonster(9300113);
+		var mob = em.getMonster(9300112, eim.getChannel());
+		var mob2 = em.getMonster(9300113, eim.getChannel());
 		eim.registerMonster(mob);
 		eim.registerMonster(mob2);
 		mob.changeDifficulty(level,isPq);
@@ -331,7 +331,7 @@ function clearPQ(eim) {
         var chests = parseInt(eim.getProperty("openedChests"));
         var expGain = (chests == 0 ? 28000 : (chests == 1 ? 35000 : 42000));
         eim.giveEventPlayersExp(expGain);
-        
+        eim.gainPartyItem(4000313, 100);
         eim.warpEventTeam(925100600);
 }
 

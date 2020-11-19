@@ -92,45 +92,29 @@ public class MapleMonsterInformationProvider {
     }
 
     private void retrieveGlobal() {
-        PreparedStatement ps = null;
-        ResultSet rs = null;
-        Connection con = null;
+        try (Connection con = DatabaseConnection.getConnection()) {
 
-        try {
-            con = DatabaseConnection.getConnection();
-            ps = con.prepareStatement("SELECT * FROM drop_data_global WHERE chance > 0");
-            rs = ps.executeQuery();
+            try (PreparedStatement ps = con.prepareStatement("SELECT * FROM drop_data_global WHERE chance > 0")) {
+                try (ResultSet rs = ps.executeQuery()) {
 
-            while (rs.next()) {
-                globaldrops.add(
-                        new MonsterGlobalDropEntry(
-                                rs.getInt("itemid"),
-                                rs.getInt("chance"),
-                                rs.getByte("continent"),
-                                rs.getInt("minimum_quantity"),
-                                rs.getInt("maximum_quantity"),
-                                rs.getShort("questid")));
+                    while (rs.next()) {
+                        globaldrops.add(
+                                new MonsterGlobalDropEntry(
+                                        rs.getInt("itemid"),
+                                        rs.getInt("chance"),
+                                        rs.getByte("continent"),
+                                        rs.getInt("minimum_quantity"),
+                                        rs.getInt("maximum_quantity"),
+                                        rs.getShort("questid"),
+                                        rs.getInt("rank"),
+                                        rs.getInt("minlevel"),
+                                        rs.getInt("maxlevel")));
+                    }
+
+                }
             }
-
-            rs.close();
-            ps.close();
-            con.close();
         } catch (SQLException e) {
             System.err.println("Error retrieving drop" + e);
-        } finally {
-            try {
-                if (ps != null && !ps.isClosed()) {
-                    ps.close();
-                }
-                if (rs != null && !rs.isClosed()) {
-                    rs.close();
-                }
-                if (con != null && !con.isClosed()) {
-                    con.close();
-                }
-            } catch (SQLException ignore) {
-                ignore.printStackTrace();
-            }
         }
     }
 
@@ -182,39 +166,21 @@ public class MapleMonsterInformationProvider {
             return drops.get(monsterId);
         }
         final List<MonsterDropEntry> ret = new LinkedList<>();
-        
-        PreparedStatement ps = null;
-        ResultSet rs = null;
-        Connection con = null;
-        try {
-            con = DatabaseConnection.getConnection();
-            ps = con.prepareStatement("SELECT itemid, chance, minimum_quantity, maximum_quantity, questid FROM drop_data WHERE dropperid = ?");
-            ps.setInt(1, monsterId);
-            rs = ps.executeQuery();
 
-            while (rs.next()) {
-                ret.add(new MonsterDropEntry(rs.getInt("itemid"), rs.getInt("chance"), rs.getInt("minimum_quantity"), rs.getInt("maximum_quantity"), rs.getShort("questid")));
+        try (Connection con = DatabaseConnection.getConnection()) {
+            try (PreparedStatement ps = con.prepareStatement("SELECT itemid, chance, minimum_quantity, maximum_quantity, questid FROM drop_data WHERE dropperid = ?")) {
+                ps.setInt(1, monsterId);
+                try (ResultSet rs = ps.executeQuery()) {
+
+                    while (rs.next()) {
+                        ret.add(new MonsterDropEntry(rs.getInt("itemid"), rs.getInt("chance"), rs.getInt("minimum_quantity"), rs.getInt("maximum_quantity"), rs.getShort("questid")));
+                    }
+                }
             }
-
             con.close();
         } catch (SQLException e) {
             e.printStackTrace();
             return ret;
-        } finally {
-            try {
-                if (ps != null && !ps.isClosed()) {
-                    ps.close();
-                }
-                if (rs != null && !rs.isClosed()) {
-                    rs.close();
-                }
-                if (con != null && !con.isClosed()) {
-                    con.close();
-                }
-            } catch (SQLException ignore) {
-                ignore.printStackTrace();
-                return ret;
-            }
         }
         drops.put(monsterId, ret);
         return ret;
@@ -297,7 +263,7 @@ public class MapleMonsterInformationProvider {
         Boolean boss = mobBossCache.get(id);
         if (boss == null) {
             try {
-                boss = MapleLifeFactory.getMonster(id).isBoss();
+                boss = MapleLifeFactory.getMonster(id, -1).isBoss();
             } catch (NullPointerException npe) {
                 boss = false;
             } catch (Exception e) {   //nonexistant mob
@@ -317,7 +283,7 @@ public class MapleMonsterInformationProvider {
         String mobName = mobNameCache.get(id);
         if (mobName == null) {
             try {
-                mobName = MapleLifeFactory.getMonster(id).getName();
+                mobName = MapleLifeFactory.getMonster(id, -1).getName();
             } catch (NullPointerException npe) {
                 mobName = ""; //nonexistant mob
             } catch (Exception e) {

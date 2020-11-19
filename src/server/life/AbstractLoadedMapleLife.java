@@ -103,4 +103,5 @@ public abstract class AbstractLoadedMapleLife extends AbstractAnimatedMapleMapOb
     public int getId() {
         return id;
     }
+    
 }
